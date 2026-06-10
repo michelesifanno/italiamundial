@@ -134,13 +134,13 @@ a{color:inherit;text-decoration:none}
 /* HERO LAYOUT */
 .hero-layout{display:flex;flex-direction:column;gap:0}
 @media(min-width:860px){
-  .hero-layout{flex-direction:row;align-items:flex-start;gap:32px;max-width:920px;margin:0 auto;padding:8px 16px 24px}
+  .hero-layout{flex-direction:row;align-items:flex-start;gap:32px;padding:8px 0 24px}
   .hero-text{flex:1;min-width:0;padding:0}
   .hero-pitch{width:320px;flex-shrink:0}
 }
 @media(max-width:859px){
-  .hero-text{padding:8px 16px 0}
-  .hero-pitch{padding:0 16px 24px;max-width:100%}
+  .hero-text{padding:8px 0 0}
+  .hero-pitch{padding:0 0 24px;max-width:100%}
 }
 
 /* ANIMS */
@@ -363,7 +363,34 @@ function poisson(lam){const e=Math.exp(-lam);let k=0,p=1;do{k++;p*=rng()}while(p
 function gCount(att,def){return Math.min(7,Math.max(0,poisson(clamp(1.4+(att-def)*0.08,0.15,5))))}
 function gMins(n){const s=new Set();while(s.size<n)s.add(1+Math.floor(89*Math.pow(rng(),0.85)));return[...s].sort((a,b)=>a-b)}
 function scorers(sq,n){if(!sq||!sq.length||n===0)return[];const wt={"CA":8,"MEI":4,"PD":4,"PE":4,"MC":2,"VOL":1};const pool=sq.flatMap(p=>{const w=(p.pos||[]).reduce((m,r)=>Math.max(m,wt[r]||0.5),1);return Array(Math.max(1,Math.round(w))).fill(p)});return Array(n).fill(0).map(()=>pick(pool)||sq[0])}
-function penKicks(itaW,iSq,oSq){const nm=(sq,n)=>[...sq].sort((a,b)=>(b.f||80)-(a.f||80)).slice(0,n).map(p=>p.n||p.name||"?");const it=nm(iSq,5),op=oSq&&oSq.length?nm([...oSq],5):["Avv1","Avv2","Avv3","Avv4","Avv5"];const ik=Array(5).fill(0).map(()=>rng()<(itaW?0.78:0.56));const ok=Array(5).fill(0).map(()=>rng()<(itaW?0.56:0.78));const iT=ik.filter(Boolean).length,oT=ok.filter(Boolean).length;if(itaW&&iT<=oT){const i=ik.indexOf(false);if(i>=0)ik[i]=true;else{const j=ok.lastIndexOf(true);if(j>=0)ok[j]=false}}else if(!itaW&&oT<=iT){const i=ok.indexOf(false);if(i>=0)ok[i]=true;else{const j=ik.lastIndexOf(true);if(j>=0)ik[j]=false}}const k=[];for(let i=0;i<5;i++){k.push({s:"ita",n:it[i],sc:ik[i]});k.push({s:"opp",n:op[i],sc:ok[i]})}return k}
+function penKicks(itaW,iSq,oSq){
+  /* ordine battitori: attaccanti → centrocampisti → difensori → portiere per ultimo */
+  const PO={CA:0,PE:0,ALS:0,ALD:0,ATT:0,MEI:1,CC:1,MC:1,TQ:1,VOL:2,DM:2,LD:3,LE:3,ZAG:3,DC:3,TS:3,TD:3,GOL:9,PT:9};
+  const rank=p=>Math.min(...(p.pos||['GOL']).map(r=>PO[r]??4));
+  const sortPen=sq=>[...sq].sort((a,b)=>rank(a)-rank(b)||(b.f||80)-(a.f||80));
+  const it=sortPen(iSq).slice(0,5).map(p=>p.n||"?");
+  const op=oSq&&oSq.length?sortPen([...oSq]).slice(0,5).map(p=>p.n||p.name||"?"):["Avv1","Avv2","Avv3","Avv4","Avv5"];
+  /* genera 5 calci per squadra garantendo il vincitore corretto */
+  const makeArr=(goals,total)=>{
+    const a=Array(total).fill(false);
+    const idx=[...Array(total).keys()];
+    /* mischia e segna esattamente 'goals' calci */
+    for(let i=idx.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    idx.slice(0,goals).forEach(i=>a[i]=true);
+    return a;
+  };
+  /* punteggio: chi vince segna uno in più */
+  const [iG,oG]=itaW?[rng()<0.5?5:4, rng()<0.5?4:3]:[rng()<0.5?3:4, rng()<0.5?4:5];
+  const safeIG=Math.min(5,Math.max(0,iG));
+  const safeOG=Math.min(5,Math.max(0,oG));
+  /* assicura che il vincitore abbia più rigori */
+  const finalIG=itaW?Math.max(safeIG,safeOG+1):Math.min(safeIG,safeOG-1);
+  const finalOG=itaW?Math.min(safeOG,safeIG-1):Math.max(safeOG,safeIG+1);
+  const ik=makeArr(Math.min(5,Math.max(0,finalIG)),5);
+  const ok=makeArr(Math.min(5,Math.max(0,finalOG)),5);
+  const k=[];for(let i=0;i<5;i++){k.push({s:"ita",n:it[i],sc:ik[i]});k.push({s:"opp",n:op[i],sc:ok[i]})}
+  return k;
+}
 function simM(iStr,oStr,isKO,iSq,oSq,style,playerStats){
   const st=STILI[style]||{a:0,d:0};const gf=gCount(iStr+st.a*0.5,oStr),ga=gCount(oStr,iStr+st.d*0.5);
   // Quando oSq è vuoto (es. qualificazioni) NON ricadere su iSq italiano
@@ -375,7 +402,7 @@ function simM(iStr,oStr,isKO,iSq,oSq,style,playerStats){
   // Track stats
   if(playerStats){for(const g of goals){if(g.ita&&g.id){playerStats[g.id]=(playerStats[g.id]||0)+1}}}
   let winner=gf>ga?"ITA":ga>gf?"OPP":"DRAW",pens=null,kicks=null;
-  if(isKO&&gf===ga){const w=rng()<clamp(0.5+(iStr-oStr)*0.012,0.1,0.9);pens=w?"5-4":"4-5";winner=w?"ITA":"OPP";kicks=penKicks(w,iSq,oSq)}
+  if(isKO&&gf===ga){const w=rng()<clamp(0.5+(iStr-oStr)*0.012,0.1,0.9);winner=w?"ITA":"OPP";kicks=penKicks(w,iSq,oSq);const ig=kicks.filter(k=>k.s==="ita"&&k.sc).length,og=kicks.filter(k=>k.s==="opp"&&k.sc).length;pens=ig+"-"+og;}
   return{gf,ga,goals,winner,pens,kicks}
 }
 function runQualification(xi,iStr,style){
@@ -460,13 +487,24 @@ function News(){
         setNews(d.items.slice(0,5).map(it=>({
           title:it.title||"",
           link:it.link||"#",
-          date:(it.pubDate||"").slice(0,16)
+          date:(it.pubDate||"").slice(0,16),
+          thumb:it.thumbnail||it.enclosure?.thumbnail||""
         })));
       }).catch(()=>{}).finally(()=>setLoading(false));
   },[]);
-  if(loading)return<div style={{color:"var(--muted)",fontSize:12,padding:"8px 0"}}>Caricamento notizie Gazzetta...</div>;
+  if(loading)return<div style={{color:"var(--muted)",fontSize:12,padding:"8px 0"}}>Caricamento notizie...</div>;
   if(!news.length)return<div style={{color:"var(--muted)",fontSize:12,padding:"8px 0"}}>Notizie non disponibili al momento.</div>;
-  return(<div>{news.map((n,i)=><a key={i} href={n.link} target="_blank" rel="noopener" className="news-item"><div style={{fontSize:13,fontWeight:600,color:"var(--text)",lineHeight:1.4,marginBottom:2}}>{n.title}</div><div style={{fontSize:10,color:"var(--muted)"}}>{n.date}</div></a>)}</div>);
+  return(
+    <div>{news.map((n,i)=>(
+      <a key={i} href={n.link} target="_blank" rel="noopener" className="news-item" style={{display:"flex",gap:10,alignItems:"center"}}>
+        {n.thumb&&<img src={n.thumb} alt="" style={{width:64,height:48,objectFit:"cover",borderRadius:6,flexShrink:0}}/>}
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:600,color:"var(--text)",lineHeight:1.4,marginBottom:2,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{n.title}</div>
+          <div style={{fontSize:10,color:"var(--muted)"}}>{n.date}</div>
+        </div>
+      </a>
+    ))}</div>
+  );
 }
 
 /* ── LANDING ──────────────────────────────────────── */
@@ -477,8 +515,9 @@ function Landing({onPlay,onStoria,theme,setTheme}){
   return(
     <div style={{minHeight:"100vh",background:"var(--bg)"}}>
       <Tri/>
+      <div style={{maxWidth:920,margin:"0 auto",padding:"0 16px"}}>
       {/* Header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 16px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:3,color:"var(--muted)"}}>ITALIA MUNDIAL · 1950 — 2014</div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <button onClick={onStoria} className="pill" style={{padding:"5px 12px",fontSize:12,fontFamily:"'Bebas Neue',sans-serif",letterSpacing:1}}>📖 STORIA</button>
@@ -503,10 +542,10 @@ function Landing({onPlay,onStoria,theme,setTheme}){
           <Pitch slots={P433} assign={PA}/>
         </div>
       </div>
-      {/* Steps like 7a0 */}
+      {/* Steps */}
       <div style={{borderTop:"1px solid var(--sep)",borderBottom:"1px solid var(--sep)",margin:"0 0 24px"}}>
         {[["01","🎲","SORTEGGIA","Estrai una spedizione Azzurra storica"],["02","⚽","COSTRUISCI","Scegli il tuo campione sul campo"],["03","📊","SIMULA","Vinci il Mondiale?"]].map(([n,ic,t,d])=>(
-          <div key={n} style={{display:"flex",gap:12,padding:"12px 16px",borderBottom:"1px solid var(--sep)"}}>
+          <div key={n} style={{display:"flex",gap:12,padding:"12px 0",borderBottom:"1px solid var(--sep)"}}>
             <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:RED,lineHeight:1,flexShrink:0}}>{n}</span>
             <span style={{fontSize:18,flexShrink:0}}>{ic}</span>
             <div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:1,color:"var(--text)"}}>{t}</div><div style={{fontSize:11,color:"var(--muted)",marginTop:2}}>{d}</div></div>
@@ -514,18 +553,18 @@ function Landing({onPlay,onStoria,theme,setTheme}){
         ))}
       </div>
       {/* Stats */}
-      <div style={{display:"flex",gap:24,padding:"0 16px 28px",justifyContent:"center"}}>
+      <div style={{display:"flex",gap:24,padding:"0 0 28px",justifyContent:"center"}}>
         {[["9","edizioni"],["140+","calciatori"],["250+","avversari"]].map(([n,l])=>(
           <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:24,color:GOLDL}}>{n}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,letterSpacing:1,color:"var(--muted)"}}>{l.toUpperCase()}</div></div>
         ))}
       </div>
-      {/* SEO content */}
-      <div style={{padding:"0 16px",maxWidth:520}}>
+      {/* News */}
+      <div style={{maxWidth:560}}>
         <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:3,color:"var(--muted)",marginBottom:10}}>NOTIZIE · GAZZETTA DELLO SPORT</div>
         <News/>
       </div>
       {/* Footer */}
-      <div style={{borderTop:"1px solid var(--sep)",padding:"16px",textAlign:"center"}}>
+      <div style={{borderTop:"1px solid var(--sep)",padding:"16px 0",textAlign:"center",marginTop:24}}>
         <div style={{fontSize:11,color:"var(--muted)",lineHeight:1.8}}>
           <a href="https://twitter.com/italiamundial" target="_blank" rel="noopener" style={{color:"var(--muted)"}}>𝕏 @ItaliaMundial</a>
           {" · "}
@@ -533,8 +572,9 @@ function Landing({onPlay,onStoria,theme,setTheme}){
           {" · "}
           <span>© 2026 Italia Mundial</span>
         </div>
-        <AdSlot id="landing-top" format="banner" style={{margin:"8px auto 0", maxWidth:728}}/>
+        <AdSlot id="landing-top" format="banner" style={{margin:"8px auto 0",maxWidth:728}}/>
       </div>
+      </div>{/* end landing wrapper */}
       <Tri/>
     </div>
   );
@@ -640,8 +680,8 @@ function MatchCard({ev,expanded}){
         </div>
         <div style={{marginLeft:10,textAlign:"right",flexShrink:0}}>
           <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:28,color:wc,lineHeight:1}}>{m.gf}–{m.ga}</div>
+          {m.pens&&<div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:13,color:GOLD}}>({m.pens}) d.c.r.</div>}
           <div style={{fontSize:14,color:wc,fontWeight:700}}>{icon}</div>
-          {m.pens&&<div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:GOLD}}>d.c.r.</div>}
         </div>
       </div>
     </div>
@@ -800,7 +840,8 @@ async function buildShareCanvas(run,assign,slots){
     c.fillText(ev.opp.f+' '+ev.opp.n+" '"+String(ev.opp.y).slice(2),28,cy+28);
     /* score */
     c.fillStyle=wc;c.font='700 18px "Montserrat",Arial,sans-serif';c.textAlign='right';
-    c.fillText(ev.m.gf+'–'+ev.m.ga,W-60,cy+28);
+    const scoreStr=ev.m.gf+'–'+ev.m.ga+(ev.m.pens?' ('+ev.m.pens+')':'');
+    c.fillText(scoreStr,W-60,cy+28);
     c.font='700 14px "Bebas Neue",Impact,sans-serif';
     c.fillText(ic+(ev.m.pens?' dcr':''),W-24,cy+28);
     cy+=44;
@@ -1006,7 +1047,7 @@ function Bracket({events,revealed,qualEvents}){
                 {rev?(
                   <>
                     <div style={{fontSize:10,color:"var(--muted)",marginBottom:2}}>{m.opp.f} {m.opp.n} '{String(m.opp.y).slice(2)}</div>
-                    <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:16,color:wc(m),lineHeight:1}}>{m.m.gf}–{m.m.ga} <span style={{fontSize:12}}>{ic(m.m)}</span></div>
+                    <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:16,color:wc(m),lineHeight:1}}>{m.m.gf}–{m.m.ga}{m.m.pens?<span style={{fontSize:11,color:GOLD}}> ({m.m.pens}) d.c.r.</span>:null} <span style={{fontSize:12}}>{ic(m.m)}</span></div>
                   </>
                 ):(
                   <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:"var(--muted)",letterSpacing:1}}>PARTITA {i+1}</div>
@@ -1034,7 +1075,7 @@ function Bracket({events,revealed,qualEvents}){
                     <>
                       <div style={{fontSize:10,color:"var(--muted)",marginBottom:2}}>{m.opp.f} {m.opp.n} '{String(m.opp.y).slice(2)}</div>
                       <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:18,color:wc(m.m),lineHeight:1}}>{m.m.gf}–{m.m.ga}</div>
-                      {m.m.pens&&<div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:GOLD}}>d.c.r.</div>}
+                      {m.m.pens&&<div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:11,color:GOLD}}>({m.m.pens}) d.c.r.</div>}
                       <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:wc(m.m),letterSpacing:1,marginTop:2}}>{ic(m.m)}</div>
                       {champion&&<div style={{fontSize:16,textAlign:"center",marginTop:4}}>🏆</div>}
                     </>
