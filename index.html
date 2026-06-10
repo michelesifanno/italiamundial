@@ -84,7 +84,7 @@ a{color:inherit;text-decoration:none}
 .page-wide{max-width:860px;margin:0 auto}
 
 /* GAME 3-COL desktop */
-.game-cols{display:grid;grid-template-columns:250px 185px 1fr;gap:10px;max-width:920px;margin:0 auto;padding:10px 10px 40px;align-items:start}
+.game-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:1100px;margin:0 auto;padding:10px 10px 40px;align-items:start}
 @media(max-width:700px){
   .game-cols{display:flex;flex-direction:column;padding:0 0 80px}
   .col-right{display:none}
@@ -662,41 +662,196 @@ function GroupTable({table}){
   );
 }
 
+/* ── SHARE CANVAS GENERATOR ───────────────────────── */
+function buildShareCanvas(run,assign,slots){
+  const endEv=run.events.find(e=>e.t==="end");
+  const matchEvs=run.events.filter(e=>e.t==="match");
+  const ps=endEv?.playerStats||{};
+  const pl=Object.values(assign).filter(Boolean);
+  const ov=pl.length?Math.round(pl.reduce((s,p)=>s+p.f,0)/pl.length):0;
+  const players=slots.map((s,i)=>assign[i]?{...assign[i],slotP:s.p}:null).filter(Boolean);
+
+  const W=640;
+  const G='#009246',R='#CE2B37',GOLDL='#E8C468',GOLD='#C9A227',AZ='#003DA5';
+  const BG='#010C1F',MUTED='#5A7EA0',SEP='rgba(0,61,165,0.3)';
+
+  /* dynamic height */
+  const H=80+110+60+28+32+matchEvs.length*44+28+36+Math.ceil(players.length/2)*34+110;
+  const DPR=2;
+  const cv=document.createElement('canvas');
+  cv.width=W*DPR; cv.height=H*DPR;
+  const c=cv.getContext('2d');
+  c.scale(DPR,DPR);
+
+  /* helpers */
+  const rr=(x,y,w,h,r)=>{c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);};
+  const hline=(y,a=SEP)=>{c.strokeStyle=a;c.lineWidth=1;c.beginPath();c.moveTo(24,y);c.lineTo(W-24,y);c.stroke();};
+
+  /* bg */
+  c.fillStyle=BG; c.fillRect(0,0,W,H);
+
+  /* subtle pitch texture */
+  for(let i=0;i<H;i+=28){c.fillStyle=i%56===0?'rgba(0,40,10,0.18)':'rgba(0,30,8,0.10)';c.fillRect(0,i,W,14);}
+
+  /* tricolor top */
+  c.fillStyle=G;c.fillRect(0,0,W/3,10);
+  c.fillStyle='#fff';c.fillRect(W/3,0,W/3,10);
+  c.fillStyle=R;c.fillRect(2*W/3,0,W/3,10);
+
+  let cy=22;
+
+  /* stars */
+  c.fillStyle=GOLD;c.font='18px serif';c.textAlign='center';
+  c.fillText('★  ★  ★  ★',W/2,cy+14);cy+=32;
+
+  /* ITALIA MUNDIAL */
+  c.fillStyle='#fff';c.font='700 46px "Bebas Neue",Impact,sans-serif';c.textAlign='center';
+  c.fillText('ITALIA MUNDIAL',W/2,cy+38);cy+=50;
+
+  /* result badge */
+  const champ=endEv?.champion;
+  const resultTxt=champ?'🏆 CAMPIONI DEL MONDO':'❌ ELIMINATI — '+(endEv?.where||'').toUpperCase();
+  c.fillStyle=champ?'rgba(201,162,39,0.15)':'rgba(206,43,55,0.15)';
+  rr(20,cy,W-40,50,10);c.fill();
+  c.strokeStyle=champ?GOLD:R;c.lineWidth=1.5;
+  rr(20,cy,W-40,50,10);c.stroke();
+  c.fillStyle=champ?GOLDL:R;c.font='700 26px "Bebas Neue",Impact,sans-serif';c.textAlign='center';
+  c.fillText(resultTxt,W/2,cy+33);cy+=62;
+
+  /* stats row */
+  const stats=[['V',endEv?.wins||0],['P',endEv?.draws||0],['S',endEv?.losses||0],['GF',endEv?.gf||0],['GS',endEv?.ga||0],['OVR',ov]];
+  const sw=W/stats.length;
+  stats.forEach(([l,v],i)=>{
+    const x=sw*i+sw/2;
+    c.fillStyle=l==='OVR'?G:GOLDL;c.font='700 22px "Montserrat",Arial,sans-serif';c.textAlign='center';
+    c.fillText(v,x,cy+20);
+    c.fillStyle=MUTED;c.font='9px "Bebas Neue",Impact,sans-serif';
+    c.fillText(l,x,cy+34);
+  });
+  cy+=50;
+
+  hline(cy+4);cy+=24;
+
+  /* IL CAMMINO */
+  c.fillStyle=MUTED;c.font='10px "Bebas Neue",Impact,sans-serif';c.textAlign='left';
+  c.fillText('IL CAMMINO',24,cy+12);cy+=28;
+
+  matchEvs.forEach(ev=>{
+    const wc=ev.m.winner==='ITA'?G:ev.m.winner==='DRAW'?MUTED:R;
+    const ic=ev.m.winner==='ITA'?'✓':ev.m.winner==='DRAW'?'–':'✗';
+    c.fillStyle='rgba(255,255,255,0.04)';rr(20,cy-2,W-40,36,6);c.fill();
+    /* round */
+    c.fillStyle=MUTED;c.font='9px "Bebas Neue",Impact,sans-serif';c.textAlign='left';
+    c.fillText(ev.round.toUpperCase(),28,cy+12);
+    /* opp */
+    c.fillStyle='#fff';c.font='600 13px "Inter",Arial,sans-serif';
+    c.fillText(ev.opp.f+' '+ev.opp.n+" '"+String(ev.opp.y).slice(2),28,cy+28);
+    /* score */
+    c.fillStyle=wc;c.font='700 18px "Montserrat",Arial,sans-serif';c.textAlign='right';
+    c.fillText(ev.m.gf+'–'+ev.m.ga,W-60,cy+28);
+    c.font='700 14px "Bebas Neue",Impact,sans-serif';
+    c.fillText(ic+(ev.m.pens?' dcr':''),W-24,cy+28);
+    cy+=44;
+  });
+
+  hline(cy+4);cy+=24;
+
+  /* LA SQUADRA */
+  c.fillStyle=MUTED;c.font='10px "Bebas Neue",Impact,sans-serif';c.textAlign='left';
+  c.fillText('LA SQUADRA · OVR '+ov,24,cy+12);cy+=30;
+
+  const cw=(W-56)/2;
+  players.forEach((p,i)=>{
+    const col=i%2,row=Math.floor(i/2);
+    const px=24+col*(cw+8),py=cy+row*34;
+    const goals=ps[p.id]||0;
+    c.fillStyle=p.l?'rgba(201,162,39,0.10)':'rgba(255,255,255,0.04)';
+    rr(px,py,cw,28,5);c.fill();
+    /* pos badge */
+    c.fillStyle=RC[p.slotP]||'#555';
+    rr(px+4,py+5,24,18,3);c.fill();
+    c.fillStyle='#fff';c.font='700 8px "Inter",Arial,sans-serif';c.textAlign='center';
+    c.fillText((RI[p.slotP]||p.slotP).slice(0,3),px+16,py+17);
+    /* name */
+    c.fillStyle=p.l?GOLDL:'#fff';c.font=(p.l?'700 ':'')+'12px "Inter",Arial,sans-serif';c.textAlign='left';
+    c.fillText((p.n+(p.l?' ★':'')).slice(0,13),px+34,py+18);
+    /* goals */
+    if(goals>0){c.fillStyle=G;c.font='700 10px "Inter",Arial,sans-serif';c.textAlign='right';c.fillText('⚽'+goals,px+cw-28,py+18);}
+    /* rating */
+    c.fillStyle=GOLDL;c.font='700 13px "Montserrat",Arial,sans-serif';c.textAlign='right';
+    c.fillText(p.f,px+cw-6,py+18);
+  });
+  cy+=Math.ceil(players.length/2)*34+16;
+
+  /* footer CTA */
+  c.fillStyle='rgba(0,20,60,0.7)';c.fillRect(0,cy,W,H-cy-10);
+  c.strokeStyle='rgba(0,61,165,0.5)';c.lineWidth=1;c.beginPath();c.moveTo(0,cy);c.lineTo(W,cy);c.stroke();
+
+  c.fillStyle=MUTED;c.font='13px "Inter",Arial,sans-serif';c.textAlign='center';
+  c.fillText('Costruisci la tua Nazionale dei sogni 🇮🇹',W/2,cy+28);
+
+  c.fillStyle=GOLDL;c.font='700 30px "Bebas Neue",Impact,sans-serif';c.textAlign='center';
+  c.fillText('www.italiamundial.it',W/2,cy+62);
+
+  c.fillStyle='rgba(255,255,255,0.15)';c.font='11px "Inter",Arial,sans-serif';
+  c.fillText('Scarica gratis — nessuna registrazione',W/2,cy+82);
+
+  /* tricolor bottom */
+  c.fillStyle=G;c.fillRect(0,H-10,W/3,10);
+  c.fillStyle='#fff';c.fillRect(W/3,H-10,W/3,10);
+  c.fillStyle=R;c.fillRect(2*W/3,H-10,W/3,10);
+
+  return cv;
+}
+
 /* ── SHARE CARD MODAL ─────────────────────────────── */
 function ShareCardModal({run,assign,slots,onClose}){
-  const endEv=run.events.find(e=>e.t==="end");const pl=Object.values(assign).filter(Boolean);
-  const ps=endEv?.playerStats||{};
-  const text=`🇮🇹 ITALIA MUNDIAL\n${endEv?.champion?"🏆 CAMPIONI DEL MONDO":"❌ Eliminati "+endEv?.where}\n${endEv?.wins}V ${endEv?.draws||0}P ${endEv?.losses||0}S\n\n`+slots.map((s,i)=>assign[i]?`${RI[s.p]} ${assign[i].n} (${assign[i].f})${ps[assign[i].id]?` ⚽${ps[assign[i].id]}`:""}`:"").filter(Boolean).join("\n");
+  const[sharing,setSharing]=useState(false);
+  const[preview,setPreview]=useState(null);
+
+  useEffect(()=>{
+    const cv=buildShareCanvas(run,assign,slots);
+    setPreview(cv.toDataURL('image/png'));
+  },[]);
+
+  async function handleShare(){
+    setSharing(true);
+    const cv=buildShareCanvas(run,assign,slots);
+    cv.toBlob(async blob=>{
+      const file=new File([blob],'italia-mundial.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file],title:'Italia Mundial 🇮🇹',text:'Ho costruito la mia Nazionale dei sogni! 🇮🇹 Prova anche tu 👇'});
+          setSharing(false);return;
+        }catch(e){}
+      }
+      /* fallback: download */
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download='italia-mundial.png';
+      document.body.appendChild(a);a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setSharing(false);
+    },'image/png');
+  }
+
   return(
     <div className="modal-bg" onClick={onClose}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+      <div className="modal-box" style={{maxWidth:460}} onClick={e=>e.stopPropagation()}>
         <Tri/>
         <div style={{padding:"14px"}}>
-          <div className="label" style={{marginBottom:10}}>LA TUA SQUADRA</div>
-          {/* Card */}
-          <div className="share-card">
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:4,color:GOLD,marginBottom:4}}>★ ★ ★ ★ · ITALIA MUNDIAL</div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:endEv?.champion?30:24,color:endEv?.champion?GOLDL:RED,marginBottom:6,lineHeight:1}}>{endEv?.champion?"🏆 CAMPIONI DEL MONDO":("ELIMINATI "+endEv?.where?.toUpperCase())}</div>
-            <div style={{display:"flex",gap:16,marginBottom:10}}>
-              {[["V",endEv?.wins],["P",endEv?.draws||0],["S",endEv?.losses||0],["GF",endEv?.gf],["GS",endEv?.ga]].map(([l,v])=>(
-                <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:18,color:GOLDL}}>{v}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:"#888",letterSpacing:1}}>{l}</div></div>
-              ))}
+          <div className="label" style={{marginBottom:8}}>ANTEPRIMA IMMAGINE</div>
+          {preview&&(
+            <div style={{borderRadius:8,overflow:"hidden",marginBottom:12,border:"1px solid var(--border)"}}>
+              <img src={preview} alt="Anteprima condivisione" style={{width:"100%",display:"block"}}/>
             </div>
-            <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:8}}>
-              {slots.map((s,i)=>{const p=assign[i];if(!p)return null;const goals=ps[p.id]||0;return(
-                <div key={s.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"3px 0",fontSize:11,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}><RB pos={s.p} sm/><span style={{color:p.l?GOLDL:"#fff",fontWeight:p.l?700:400}}>{p.n}</span></div>
-                  <div style={{display:"flex",gap:8,alignItems:"center",color:"#888"}}>
-                    {goals>0&&<span style={{color:GR,fontWeight:600}}>⚽{goals}</span>}
-                    <span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,color:GOLDL}}>{p.f}</span>
-                  </div>
-                </div>
-              )})}
-            </div>
-          </div>
-          {/* Copy */}
-          <button onClick={async()=>{if(navigator.share){try{await navigator.share({title:"Italia Mundial — La mia Nazionale 🇮🇹",text});return}catch{}}navigator.clipboard?.writeText(text).then(()=>alert("📋 Copiato!")).catch(()=>alert(text))}} className="btn-red" style={{marginTop:12}}>📤 CONDIVIDI SQUADRA</button>
-          <button onClick={onClose} style={{marginTop:6,width:"100%",padding:"10px",borderRadius:8,background:"transparent",color:"var(--muted)",border:"1px solid var(--border)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2}}>CHIUDI</button>
+          )}
+          {!preview&&<div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--muted)",fontSize:13}}>Generazione immagine...</div>}
+          <button onClick={handleShare} className="btn-red" disabled={sharing||!preview} style={{marginBottom:6,opacity:sharing?0.7:1}}>
+            {sharing?"Preparazione...":(navigator.share?"📤 CONDIVIDI IMMAGINE":"⬇ SCARICA IMMAGINE")}
+          </button>
+          <button onClick={onClose} style={{width:"100%",padding:"10px",borderRadius:8,background:"transparent",color:"var(--muted)",border:"1px solid var(--border)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2}}>CHIUDI</button>
         </div>
       </div>
     </div>
@@ -712,7 +867,7 @@ function StoriaPage({onClose}){
   return(
     <div style={{minHeight:"100vh",background:"var(--bg)"}}>
       <Tri/>
-      <div style={{maxWidth:560,margin:"0 auto",padding:"0 0 60px"}}>
+      <div style={{maxWidth:560,margin:"0 auto",padding:"60px 0 60px"}}>
         {/* Header */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:"1px solid var(--sep)"}}>
           <div><div className="label">LE SPEDIZIONI AZZURRE</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"var(--text)"}}>La Storia</div></div>
@@ -993,13 +1148,13 @@ function GamePage({slots,assign,drawn,rerolls,pending,hlSlots,mode,started,onDra
             <button onClick={onReset} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,letterSpacing:1,background:"transparent",color:"var(--muted)",border:"none",padding:0}}>↩ Ricomincia da capo</button>
           </div>
         </div>
-        {/* CENTER: Box score */}
-        <div className="col-right card">
-          <BoxScore slots={slots} assign={assign} mode={gameMode}/>
-        </div>
-        {/* RIGHT: Pitch */}
+        {/* CENTER: Pitch */}
         <div id="pitch-el" className="col-pitch">
           <Pitch slots={slots} assign={assign} hlSlots={hlSlots} onSlotTap={onSlotTap}/>
+        </div>
+        {/* RIGHT: Box score */}
+        <div className="col-right card">
+          <BoxScore slots={slots} assign={assign} mode={gameMode}/>
         </div>
       </div>
     </div>
