@@ -695,8 +695,18 @@ async function buildShareCanvas(run,assign,slots){
     });
   }catch(e){}
 
-  /* dynamic height */
-  const H=HERO_H+60+28+32+matchEvs.length*44+28+36+Math.ceil(players.length/2)*34+130;
+  /* dynamic height — calcolo esatto sezione per sezione */
+  const FOOTER_H=120;
+  const H=HERO_H          // hero image
+    +62                   // result badge
+    +50                   // stats row
+    +24                   // hline
+    +28                   // "IL CAMMINO" label
+    +matchEvs.length*44   // partite
+    +24                   // hline
+    +30                   // "LA SQUADRA" label
+    +Math.ceil(players.length/2)*34+16  // giocatori
+    +FOOTER_H;            // footer CTA
   const DPR=2;
   const cv=document.createElement('canvas');
   cv.width=W*DPR; cv.height=H*DPR;
@@ -826,27 +836,27 @@ async function buildShareCanvas(run,assign,slots){
   cy+=Math.ceil(players.length/2)*34+16;
 
   /* footer CTA */
-  const footerH=100;
-  c.fillStyle='rgba(0,20,60,0.85)';c.fillRect(0,cy,W,footerH+10);
-  c.strokeStyle='rgba(0,61,165,0.5)';c.lineWidth=1;c.beginPath();c.moveTo(0,cy);c.lineTo(W,cy);c.stroke();
+  c.fillStyle='rgba(0,15,50,0.92)';c.fillRect(0,cy,W,FOOTER_H);
+  c.strokeStyle='rgba(0,61,165,0.6)';c.lineWidth=1;c.beginPath();c.moveTo(0,cy);c.lineTo(W,cy);c.stroke();
 
-  c.textAlign='center';
-  c.fillStyle=MUTED;c.font='bold 13px Arial,sans-serif';
-  c.fillText('Costruisci la tua Nazionale dei sogni',W/2,cy+26);
+  c.save();
+  c.textAlign='center';c.textBaseline='middle';
 
-  c.textAlign='center';
-  c.fillStyle=GOLDL;c.font='bold 32px Impact,sans-serif';
-  c.fillText('www.italiamundial.it',W/2,cy+64);
+  c.fillStyle=MUTED;c.font='13px Arial,sans-serif';
+  c.fillText('Costruisci la tua Nazionale dei sogni',W/2,cy+28);
 
-  c.textAlign='center';
-  c.fillStyle='rgba(255,255,255,0.35)';c.font='11px Arial,sans-serif';
-  c.fillText('Gratis — nessuna registrazione',W/2,cy+86);
+  c.fillStyle=GOLDL;c.font='bold 34px Impact,sans-serif';
+  c.fillText('WWW.ITALIAMUNDIAL.IT',W/2,cy+68);
+
+  c.fillStyle='rgba(255,255,255,0.30)';c.font='11px Arial,sans-serif';
+  c.fillText('Gratis — nessuna registrazione',W/2,cy+100);
+
+  c.restore();
 
   /* tricolor bottom */
-  const bot=cy+footerH+10;
-  c.fillStyle=G;c.fillRect(0,bot-10,W/3,10);
-  c.fillStyle='#fff';c.fillRect(W/3,bot-10,W/3,10);
-  c.fillStyle=R;c.fillRect(2*W/3,bot-10,W/3,10);
+  c.fillStyle=G;c.fillRect(0,H-10,W/3,10);
+  c.fillStyle='#fff';c.fillRect(W/3,H-10,W/3,10);
+  c.fillStyle=R;c.fillRect(2*W/3,H-10,W/3,10);
 
   return cv;
 }
