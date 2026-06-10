@@ -95,6 +95,8 @@ a{color:inherit;text-decoration:none}
 .pill.sel{background:var(--pill-sel-bg);color:var(--pill-sel);border-color:var(--pill-sel-bg)}
 .btn-red{background:#CE2B37;color:#fff;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;padding:14px 0;width:100%;box-shadow:0 5px 20px rgba(206,43,55,.45);transition:transform .1s}
 .btn-red:active{transform:scale(.97)}
+@keyframes pulseRed{0%,100%{box-shadow:0 5px 20px rgba(206,43,55,.45)}50%{box-shadow:0 0 0 6px rgba(206,43,55,.18),0 5px 28px rgba(206,43,55,.7)}}
+.btn-red-pulse{animation:pulseRed 1.6s ease-in-out infinite;font-size:22px}
 .btn-blue{background:linear-gradient(135deg,#003DA5,#1565C0);color:#fff;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;padding:12px 0;width:100%;box-shadow:0 5px 18px rgba(0,61,165,.45)}
 .label{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:3px;color:var(--muted)}
 .sep{height:1px;background:var(--sep);margin:0}
@@ -452,14 +454,13 @@ function Pitch({slots,assign,hlSlots,onSlotTap}){
 function News(){
   const [news,setNews]=useState([]);const [loading,setLoading]=useState(true);
   useEffect(()=>{
-    fetch("https://api.allorigins.win/get?url="+encodeURIComponent("https://www.gazzetta.it/dynamic-feed/rss/section/Calcio/nazionali.xml"))
+    fetch("https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent("https://www.gazzetta.it/dynamic-feed/rss/section/Calcio/nazionali.xml"))
       .then(r=>r.json()).then(d=>{
-        if(!d.contents)return;
-        const x=new DOMParser().parseFromString(d.contents,"text/xml");
-        setNews([...x.querySelectorAll("item")].slice(0,5).map(el=>({
-          title:el.querySelector("title")?.textContent||"",
-          link:el.querySelector("link")?.textContent||"#",
-          date:(el.querySelector("pubDate")?.textContent||"").slice(0,16)
+        if(!d.items||!d.items.length)return;
+        setNews(d.items.slice(0,5).map(it=>({
+          title:it.title||"",
+          link:it.link||"#",
+          date:(it.pubDate||"").slice(0,16)
         })));
       }).catch(()=>{}).finally(()=>setLoading(false));
   },[]);
@@ -526,7 +527,9 @@ function Landing({onPlay,onStoria,theme,setTheme}){
       {/* Footer */}
       <div style={{borderTop:"1px solid var(--sep)",padding:"16px",textAlign:"center"}}>
         <div style={{fontSize:11,color:"var(--muted)",lineHeight:1.8}}>
-          <a href="https://twitter.com/ItaliaMundial_it" target="_blank" rel="noopener" style={{color:"var(--muted)"}}>𝕏 @ItaliaMundial_it</a>
+          <a href="https://twitter.com/italiamundial" target="_blank" rel="noopener" style={{color:"var(--muted)"}}>𝕏 @ItaliaMundial</a>
+          {" · "}
+          <span>Zifa</span>
           {" · "}
           <span>© 2026 Italia Mundial</span>
         </div>
@@ -553,8 +556,12 @@ function SetupPanel({form,setForm,sty,setSty,mode,setMode,onRoll,locked}){
       <div style={{display:"flex",gap:5,marginBottom:16}}>
         {["Classico","Alla cieca"].map(m=><button key={m} onClick={()=>setMode(m)} className={"pill"+(mode===m?" sel":"")}>{m}</button>)}
       </div>
-      <div style={{border:"1px dashed var(--border)",borderRadius:8,padding:"12px",marginBottom:12,textAlign:"center",color:"var(--muted)",fontSize:13}}>Sorteggia una spedizione Azzurra storica</div>
-      <button onClick={onRoll} className="btn-red">SORTEGGIA 🎲</button>
+      <div style={{border:"1px dashed rgba(206,43,55,0.5)",borderRadius:8,padding:"12px",marginBottom:12,textAlign:"center",background:"rgba(206,43,55,0.06)"}}>
+        <div style={{fontSize:24,marginBottom:4}}>🎲</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:2,color:"var(--text)"}}>SORTEGGIA LA TUA ITALIA</div>
+        <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>Estrai una storica spedizione Azzurra</div>
+      </div>
+      <button onClick={onRoll} className="btn-red btn-red-pulse">SORTEGGIA 🎲</button>
     </div>
   );
 }
@@ -660,7 +667,7 @@ function GroupTable({table}){
 }
 
 /* ── SHARE CANVAS GENERATOR ───────────────────────── */
-function buildShareCanvas(run,assign,slots){
+async function buildShareCanvas(run,assign,slots){
   const endEv=run.events.find(e=>e.t==="end");
   const matchEvs=run.events.filter(e=>e.t==="match");
   const ps=endEv?.playerStats||{};
@@ -669,11 +676,22 @@ function buildShareCanvas(run,assign,slots){
   const players=slots.map((s,i)=>assign[i]?{...assign[i],slotP:s.p}:null).filter(Boolean);
 
   const W=640;
+  const HERO_H=210;
   const G='#009246',R='#CE2B37',GOLDL='#E8C468',GOLD='#C9A227',AZ='#003DA5';
   const BG='#010C1F',MUTED='#5A7EA0',SEP='rgba(0,61,165,0.3)';
 
+  /* load hero image */
+  let heroImg=null;
+  try{
+    heroImg=await new Promise((res)=>{
+      const img=new Image();img.crossOrigin='anonymous';
+      img.onload=()=>res(img);img.onerror=()=>res(null);
+      img.src='/public/GettyImages-1224319980.webp';
+    });
+  }catch(e){}
+
   /* dynamic height */
-  const H=80+110+60+28+32+matchEvs.length*44+28+36+Math.ceil(players.length/2)*34+110;
+  const H=HERO_H+60+28+32+matchEvs.length*44+28+36+Math.ceil(players.length/2)*34+110;
   const DPR=2;
   const cv=document.createElement('canvas');
   cv.width=W*DPR; cv.height=H*DPR;
@@ -687,23 +705,45 @@ function buildShareCanvas(run,assign,slots){
   /* bg */
   c.fillStyle=BG; c.fillRect(0,0,W,H);
 
-  /* subtle pitch texture */
-  for(let i=0;i<H;i+=28){c.fillStyle=i%56===0?'rgba(0,40,10,0.18)':'rgba(0,30,8,0.10)';c.fillRect(0,i,W,14);}
+  /* subtle pitch texture below hero */
+  for(let i=HERO_H;i<H;i+=28){c.fillStyle=i%56===0?'rgba(0,40,10,0.18)':'rgba(0,30,8,0.10)';c.fillRect(0,i,W,14);}
 
-  /* tricolor top */
-  c.fillStyle=G;c.fillRect(0,0,W/3,10);
-  c.fillStyle='#fff';c.fillRect(W/3,0,W/3,10);
-  c.fillStyle=R;c.fillRect(2*W/3,0,W/3,10);
+  /* HERO: Getty image or gradient fallback */
+  if(heroImg){
+    const iw=heroImg.naturalWidth||heroImg.width,ih=heroImg.naturalHeight||heroImg.height;
+    const scale=Math.max(W/iw,HERO_H/ih);
+    const dw=iw*scale,dh=ih*scale;
+    c.save();c.beginPath();c.rect(0,0,W,HERO_H);c.clip();
+    c.drawImage(heroImg,(W-dw)/2,(HERO_H-dh)/2,dw,dh);
+    c.restore();
+  }else{
+    const grd=c.createLinearGradient(0,0,W,HERO_H);
+    grd.addColorStop(0,'#001A4D');grd.addColorStop(1,'#010C1F');
+    c.fillStyle=grd;c.fillRect(0,0,W,HERO_H);
+  }
+  /* dark overlay over hero */
+  const ovg=c.createLinearGradient(0,0,0,HERO_H);
+  ovg.addColorStop(0,'rgba(1,12,31,0.30)');
+  ovg.addColorStop(0.55,'rgba(1,12,31,0.18)');
+  ovg.addColorStop(1,'rgba(1,12,31,0.90)');
+  c.fillStyle=ovg;c.fillRect(0,0,W,HERO_H);
 
-  let cy=22;
+  /* tricolor strip */
+  c.fillStyle=G;c.fillRect(0,0,W/3,8);
+  c.fillStyle='#fff';c.fillRect(W/3,0,W/3,8);
+  c.fillStyle=R;c.fillRect(2*W/3,0,W/3,8);
 
   /* stars */
-  c.fillStyle=GOLD;c.font='18px serif';c.textAlign='center';
-  c.fillText('★  ★  ★  ★',W/2,cy+14);cy+=32;
+  c.fillStyle=GOLD;c.font='16px serif';c.textAlign='center';
+  c.fillText('★  ★  ★  ★',W/2,34);
 
-  /* ITALIA MUNDIAL */
-  c.fillStyle='#fff';c.font='700 46px "Bebas Neue",Impact,sans-serif';c.textAlign='center';
-  c.fillText('ITALIA MUNDIAL',W/2,cy+38);cy+=50;
+  /* ITALIA MUNDIAL on hero */
+  c.shadowColor='rgba(0,0,0,0.9)';c.shadowBlur=16;
+  c.fillStyle='#fff';c.font='700 58px "Bebas Neue",Impact,sans-serif';c.textAlign='center';
+  c.fillText('ITALIA MUNDIAL',W/2,HERO_H-55);
+  c.shadowBlur=0;
+
+  let cy=HERO_H;
 
   /* result badge */
   const champ=endEv?.champion;
@@ -807,13 +847,12 @@ function ShareCardModal({run,assign,slots,onClose}){
   const[preview,setPreview]=useState(null);
 
   useEffect(()=>{
-    const cv=buildShareCanvas(run,assign,slots);
-    setPreview(cv.toDataURL('image/png'));
+    buildShareCanvas(run,assign,slots).then(cv=>setPreview(cv.toDataURL('image/png')));
   },[]);
 
   async function handleShare(){
     setSharing(true);
-    const cv=buildShareCanvas(run,assign,slots);
+    const cv=await buildShareCanvas(run,assign,slots);
     cv.toBlob(async blob=>{
       const file=new File([blob],'italia-mundial.png',{type:'image/png'});
       if(navigator.canShare&&navigator.canShare({files:[file]})){
@@ -1111,7 +1150,7 @@ function GamePage({slots,assign,drawn,rerolls,pending,hlSlots,mode,started,onDra
                 <div className="label">ESTRATTA</div>
                 <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"var(--text)",lineHeight:1.1}}>🇮🇹 ITALIA {drawn.y}</div>
                 <div style={{fontSize:12,color:drawn.r.includes("🏆")?GOLDL:"var(--muted)",marginTop:2}}>{drawn.r}</div>
-                {rerolls>0&&<button onClick={onReroll} style={{marginTop:7,fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:1,background:"transparent",color:"var(--muted)",border:"1px solid var(--border)",borderRadius:5,padding:"4px 9px"}}>🔀 ALTRA SQUADRA ({rerolls} left)</button>}
+                {rerolls>0&&<button onClick={onReroll} style={{marginTop:8,fontFamily:"'Bebas Neue',sans-serif",fontSize:13,letterSpacing:1,background:"rgba(206,43,55,0.12)",color:"#CE2B37",border:"1px solid rgba(206,43,55,0.4)",borderRadius:6,padding:"7px 12px",width:"100%",display:"block"}}>🔀 RISORTEGGIA ({rerolls} rimasti)</button>}
               </div>
               {pending&&<div style={{padding:"7px 12px",background:"rgba(201,162,39,.1)",borderBottom:"1px solid rgba(201,162,39,.3)",fontSize:12,color:GOLDL,fontWeight:600}}>📍 {pending.n} — tocca il campo</div>}
               <div className="label" style={{padding:"7px 12px 3px"}}>SCEGLI UN CALCIATORE</div>
@@ -1235,7 +1274,7 @@ function App(){
   },[]);
   function themeSet(t){setTheme(t);document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("nm-theme",t)}catch{}}
   function drawNew(){if(!started)setStarted(true);const emptyPos=new Set(slots.filter((_,i)=>!assign[i]).map(s=>s.p));const emptyCompat=new Set([...emptyPos].flatMap(p=>COMPAT[p]||[p]));const avail=itaData.filter(ed=>ed.s.some(p=>!placed.includes(playerPid(p))&&p.pos.some(r=>emptyCompat.has(r))));if(!avail.length)return;const weighted=avail.flatMap(ed=>{const rc=recent.filter(y=>y===ed.y).length;return Array(Math.max(1,4-rc)).fill(ed)});const ed=pick(weighted);setRecent(r=>[...r.slice(-5),ed.y]);setDrawn(ed)}
-  function onDraw(){if(!drawn)drawNew()}
+  function onDraw(){if(!drawn){drawNew();setTimeout(()=>document.getElementById("pitch-el")?.scrollIntoView({behavior:"smooth",block:"start"}),120);}}
   function onReroll(){if(rerolls<=0)return;setRerolls(r=>r-1);setPending(null);setHl([]);drawNew()}
   function onPlayerSelect(p){const v=validSlots(p,slots,assign);if(!v.length)return;if(v.length===1){setAssign(prev=>({...prev,[v[0]]:{...p,edition:drawn?drawn.y:""}}));setDrawn(null);setPending(null);setHl([]);setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),80)}else{setPending(p);setHl(v);setTimeout(()=>document.getElementById("pitch-el")?.scrollIntoView({behavior:"smooth",block:"start"}),80)}}
   function onSlotTap(idx){if(!pending||!hlSlots.includes(idx))return;setAssign(prev=>({...prev,[idx]:{...pending,edition:drawn?drawn.y:""}}));setDrawn(null);setPending(null);setHl([]);setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),80)}
@@ -1263,5 +1302,6 @@ function App(){
 }
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
