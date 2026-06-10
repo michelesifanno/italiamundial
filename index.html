@@ -1,0 +1,1085 @@
+<div id="root"></div>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+
+<!-- ═══ SEO + Open Graph (per condivisione su social) ═══ -->
+<title>Italia Mundial — Costruisci la tua Nazionale italiana dei sogni</title>
+<meta name="description" content="L'Italia non è ai Mondiali dal 2018. Sorteggia le spedizioni Azzurre storiche, costruisci il tuo undici dei sogni e simula il Mondiale. Gratis, mobile-first.">
+<meta name="keywords" content="nazionale italiana, mondiali, fantacalcio, azzurri, italia 1982, maldini, buffon, pirlo, italia mundial">
+<meta name="author" content="Italia Mundial">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://italia-mundial.netlify.app/">
+
+<!-- Open Graph (Facebook, WhatsApp, Telegram) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Italia Mundial — La Nazionale Italiana dei Sogni">
+<meta property="og:description" content="Sorteggia le leggende Azzurre e riporta l'Italia sul tetto del mondo. Gioco gratuito.">
+<meta property="og:image" content="https://italia-mundial.netlify.app/og-image.png">
+<meta property="og:url" content="https://italia-mundial.netlify.app/">
+<meta property="og:locale" content="it_IT">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Italia Mundial 🇮🇹 — Costruisci la tua Nazionale dei sogni">
+<meta name="twitter:description" content="Maldini, Pirlo, R.Baggio nella stessa squadra? Prova a vincere il Mondiale con gli Azzurri storici.">
+<meta name="twitter:image" content="https://italia-mundial.netlify.app/og-image.png">
+
+<!-- Schema.org WebApplication (Google rich results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Italia Mundial",
+  "description": "Gioco fantasy sulla Nazionale Italiana ai Mondiali. Sorteggia le spedizioni Azzurre storiche e costruisci il tuo undici dei sogni.",
+  "url": "https://italia-mundial.netlify.app/",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Web",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+  "inLanguage": "it",
+  "keywords": "nazionale italiana, mondiali, azzurri, fantacalcio storico"
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+/* ── THEME VARIABLES ─────────────────────────────── */
+:root{
+  --bg:#010C1F;--card:#fff1;--border:rgba(0,61,165,.25);
+  --text:#fff;--muted:#5A7EA0;--sep:rgba(0,61,165,.2);
+  --hover:rgba(0,61,165,.12);--shadow:0 4px 20px rgba(0,61,165,.3);
+  --pill-bg:rgba(0,61,165,.15);--pill-sel:#fff;--pill-sel-bg:#003DA5;
+  --input-bg:rgba(0,61,165,.1);--divider:rgba(255,255,255,.08)
+}
+[data-theme=light]{
+  --bg:#EDE8DB;--card:#fff;--border:#ccc7be;
+  --text:#1a1a1a;--muted:#7a7570;--sep:#d4cfc5;
+  --hover:rgba(0,0,0,.05);--shadow:0 2px 12px rgba(0,0,0,.1);
+  --pill-bg:#e4dfd5;--pill-sel:#fff;--pill-sel-bg:#1a1a1a;
+  --input-bg:#f5f0e8;--divider:#d4cfc5
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{min-height:100%;background:var(--bg);color:var(--text)}
+body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer;border:none;outline:none}
+a{color:inherit;text-decoration:none}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.page{max-width:520px;margin:0 auto;padding:0 0 60px}
+.page-wide{max-width:860px;margin:0 auto}
+
+/* GAME 3-COL desktop */
+.game-cols{display:grid;grid-template-columns:250px 185px 1fr;gap:10px;max-width:920px;margin:0 auto;padding:10px 10px 40px;align-items:start}
+@media(max-width:700px){
+  .game-cols{display:flex;flex-direction:column;padding:0 0 80px}
+  .col-right{display:none}
+  .col-left{order:2;border-top:1px solid var(--sep)}
+  .col-pitch{order:1}
+}
+
+/* ── COMPONENTS ──────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+.pill{padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:var(--pill-bg);color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;transition:all .15s;min-height:38px}
+.pill.sel{background:var(--pill-sel-bg);color:var(--pill-sel);border-color:var(--pill-sel-bg)}
+.btn-red{background:#CE2B37;color:#fff;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;padding:14px 0;width:100%;box-shadow:0 5px 20px rgba(206,43,55,.45);transition:transform .1s}
+.btn-red:active{transform:scale(.97)}
+.btn-blue{background:linear-gradient(135deg,#003DA5,#1565C0);color:#fff;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;padding:12px 0;width:100%;box-shadow:0 5px 18px rgba(0,61,165,.45)}
+.label{font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:3px;color:var(--muted)}
+.sep{height:1px;background:var(--sep);margin:0}
+
+/* PLAYER LIST */
+.pitem{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--divider);cursor:pointer;transition:background .1s}
+.pitem:hover,.pitem.active{background:var(--hover)}
+.pitem.disabled{opacity:.22;cursor:default;pointer-events:none}
+
+/* MATCH CARD */
+.match-row{border-bottom:1px solid var(--sep);padding:10px 14px}
+.match-row:last-child{border:none}
+
+/* SLOT */
+.slot-wrap{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;width:52px}
+.slot-circle{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .15s}
+[data-theme=light] .slot-circle{border-color:rgba(0,0,0,.3)}
+.slot-circle.hl{border-color:#E8C468;box-shadow:0 0 0 4px rgba(201,162,39,.4);animation:hlp .85s infinite alternate;cursor:pointer}
+@keyframes hlp{from{box-shadow:0 0 0 3px rgba(201,162,39,.35)}to{box-shadow:0 0 0 6px rgba(201,162,39,.65)}}
+.slot-name{font-family:'Inter',sans-serif;font-size:8px;font-weight:600;background:rgba(1,12,31,.88);color:#fff;padding:1px 3px;border-radius:3px;text-align:center;line-height:1.3;max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-theme=light] .slot-name{background:rgba(237,232,219,.92);color:#1a1a1a}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:300;padding:16px}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:380px;max-height:88vh;overflow-y:auto}
+
+/* SHARE CARD */
+.share-card{background:var(--bg);border:2px solid #C9A227;border-radius:12px;padding:18px 14px;max-width:340px;margin:0 auto}
+[data-theme=light] .share-card{background:#1a1a1a}
+
+/* NEWS */
+.news-item{border-bottom:1px solid var(--sep);padding:10px 0;display:block}
+.news-item:last-child{border:none}
+
+/* ANIMS */
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fi{animation:fadein .2s ease}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+<script type="text/babel">
+const{useState,useEffect,useRef,createContext,useContext}=React;
+
+/* ── AD SLOTS ────────────────────────────────────────
+   Formati:
+   - "banner"     : 320×50 mobile / 728×90 desktop (leaderboard)
+   - "rectangle"  : 300×250 (medium rectangle, più pagato)
+   - "interstitial": fullscreen tra le pagine (via Auto Ads)
+   - "anchor"     : sticky bottom (via Auto Ads)
+   
+   Slot IDs da ottenere da AdSense dopo approvazione account.
+   IM_AD_SLOTS è il mapping slot_name → data-ad-slot ID.
+   ──────────────────────────────────────────────────── */
+const IM_AD_SLOTS = {
+  "landing-top":    "XXXXXXXXXX",  // leaderboard sopra hero
+  "landing-mid":    "XXXXXXXXXX",  // rectangle dopo CTA
+  "storia-mid":     "XXXXXXXXXX",  // banner nella storia
+  "sim-pregame":    "XXXXXXXXXX",  // rectangle prima risultato
+  "sim-postgame":   "XXXXXXXXXX",  // rectangle dopo risultato
+};
+
+function AdSlot({id, format="banner", style={}}){
+  const ref = React.useRef(null);
+  React.useEffect(()=>{
+    if(!window.IM_ADSENSE?.enabled) return;
+    try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch{}
+  },[]);
+  if(!window.IM_ADSENSE?.enabled) return null; // nascosto se non configurato
+  const pub = window.IM_ADSENSE?.publisher || "ca-pub-XXXXXXXXXXXXXXXX";
+  const slot = IM_AD_SLOTS[id] || "XXXXXXXXXX";
+  const styles = {
+    banner:    {display:"block", minHeight:50, background:"rgba(0,0,0,.05)"},
+    rectangle: {display:"block", minHeight:250, background:"rgba(0,0,0,.05)"},
+    ...style
+  };
+  return(
+    <div style={{textAlign:"center", overflow:"hidden", margin:"8px 0"}}>
+      <ins className="adsbygoogle"
+        style={styles[format]||styles.banner}
+        data-ad-client={pub}
+        data-ad-slot={slot}
+        data-ad-format="auto"
+        data-full-width-responsive="true"/>
+    </div>
+  );
+}
+
+/* ── THEME ────────────────────────────────────────── */
+const ThemeCtx=createContext("dark");
+function useTheme(){return useContext(ThemeCtx)}
+/* ── PALETTE ──────────────────────────────────────── */
+const GOLD="#C9A227",GOLDL="#E8C468",GR="#009246",RED="#CE2B37",AZ="#003DA5";
+const RI={GOL:"PT",LD:"TD",LE:"TS",ZAG:"DC",VOL:"DM",MC:"CC",MD:"CD",ME:"CS",MEI:"TQ",PD:"ALD",PE:"ALS",CA:"ATT"};
+const RC={GOL:"#92610A",LD:"#1565C0",LE:"#1565C0",ZAG:"#1565C0",VOL:"#1B5E20",MC:"#2E7D32",MD:"#33691E",ME:"#33691E",MEI:"#006064",PD:"#B71C1C",PE:"#B71C1C",CA:"#7B0000"};
+const RO=["GOL","LD","ZAG","LE","VOL","MC","MD","ME","MEI","PD","CA","PE"];
+const rIdx=p=>Math.min(...p.pos.map(r=>{const i=RO.indexOf(r);return i<0?99:i}));
+const COMPAT={GOL:["GOL"],LD:["LD"],LE:["LE"],ZAG:["ZAG","LD","LE"],VOL:["VOL","MC"],MC:["MC","VOL","MD","ME"],MD:["MD","MC","PD"],ME:["ME","MC","PE"],MEI:["MEI","MC","CA"],PD:["PD","MD"],PE:["PE","ME"],CA:["CA","MEI"]};
+
+// Normalizza nome per deduplicazione: "P.Rossi" → "rossi", "R.Baggio" → "baggio", "De Rossi" → "de rossi"
+// Mappa id → persona reale. Stessa persona in più edizioni condivide pid.
+// D.Baggio (db94=Dino) e R.Baggio (rb90/94/98=Roberto) → pid DIVERSI → convivono nell'XI
+const PLAYER_PID={
+  "z70":"zoff","z78":"zoff","z82":"zoff",
+  "bo78":"bordon","bo82":"bordon",
+  "bf98":"buffon","bf02":"buffon","bf06":"buffon","bf14":"buffon",
+  "pa94":"pagliuca","pa98":"pagliuca",
+  "ml90":"maldini","ml94":"maldini","ml98":"maldini","ml02":"maldini",
+  "ba90":"baresi","ba94":"baresi",
+  "bg82":"bergomi","bg90":"bergomi",
+  "cc94":"costacurta","cc98":"costacurta",
+  "cn98":"cannavaro","cn02":"cannavaro","cn06":"cannavaro",
+  "ne98":"nesta","ne02":"nesta","ne06":"nesta",
+  "zm02":"zambrotta","zm06":"zambrotta",
+  "bz06":"barzagli","bz14":"barzagli",
+  "ca78":"cabrini","ca82":"cabrini",
+  "ge78":"gentile","ge82":"gentile",
+  "sc78":"scirea","sc82":"scirea",
+  "ta78":"tardelli","ta82":"tardelli",
+  "an78":"antognoni","at82":"antognoni",
+  "co78":"conti","co82":"conti",
+  "cs78":"causio","cs82":"causio",
+  "ab94":"albertini","ab98":"albertini","ab02":"albertini",
+  "dr06":"de-rossi","dr14":"de-rossi",
+  "pi02":"pirlo","pi06":"pirlo","pi14":"pirlo",
+  "dn90":"donadoni","dn94":"donadoni",
+  "be90":"berti","be94":"berti",
+  "ro78":"p-rossi","ro82":"p-rossi",
+  "rb90":"r-baggio","rb94":"r-baggio","rb98":"r-baggio",
+  "db94":"d-baggio",
+  "dp98":"del-piero","dp02":"del-piero","dp06":"del-piero",
+  "in98":"inzaghi","in02":"inzaghi","in06":"inzaghi",
+  "ve98":"vieri","ve02":"vieri",
+  "tt02":"totti","tt06":"totti",
+};
+const playerPid=p=>PLAYER_PID[p.id]||p.id;
+function validSlots(p,slots,assign){return slots.reduce((a,s,i)=>{if(!assign[i]&&(COMPAT[s.p]||[s.p]).some(cp=>p.pos.includes(cp)))a.push(i);return a},[])}
+/* ── FORMATIONS ───────────────────────────────────── */
+const FORMS={
+  "4-3-3":[{id:"gk",p:"GOL",x:50,y:88},{id:"rb",p:"LD",x:83,y:74},{id:"cb1",p:"ZAG",x:63,y:78},{id:"cb2",p:"ZAG",x:37,y:78},{id:"lb",p:"LE",x:17,y:74},{id:"dm",p:"VOL",x:50,y:59},{id:"cm",p:"MC",x:70,y:48},{id:"am",p:"MEI",x:30,y:48},{id:"rw",p:"PD",x:83,y:22},{id:"st",p:"CA",x:50,y:14},{id:"lw",p:"PE",x:17,y:22}],
+  "4-4-2":[{id:"gk",p:"GOL",x:50,y:88},{id:"rb",p:"LD",x:83,y:74},{id:"cb1",p:"ZAG",x:63,y:78},{id:"cb2",p:"ZAG",x:37,y:78},{id:"lb",p:"LE",x:17,y:74},{id:"rm",p:"MD",x:83,y:52},{id:"rcm",p:"MC",x:62,y:54},{id:"lcm",p:"VOL",x:38,y:54},{id:"lm",p:"ME",x:17,y:52},{id:"st1",p:"CA",x:65,y:17},{id:"st2",p:"CA",x:35,y:17}],
+  "4-2-3-1":[{id:"gk",p:"GOL",x:50,y:88},{id:"rb",p:"LD",x:83,y:74},{id:"cb1",p:"ZAG",x:63,y:78},{id:"cb2",p:"ZAG",x:37,y:78},{id:"lb",p:"LE",x:17,y:74},{id:"dm1",p:"VOL",x:63,y:61},{id:"dm2",p:"VOL",x:37,y:61},{id:"rw",p:"PD",x:81,y:43},{id:"am",p:"MEI",x:50,y:43},{id:"lw",p:"PE",x:19,y:43},{id:"st",p:"CA",x:50,y:15}],
+  "3-5-2":[{id:"gk",p:"GOL",x:50,y:88},{id:"cb1",p:"ZAG",x:70,y:76},{id:"cb2",p:"ZAG",x:50,y:79},{id:"cb3",p:"ZAG",x:30,y:76},{id:"rm",p:"MD",x:88,y:52},{id:"rcm",p:"MC",x:67,y:56},{id:"cm",p:"VOL",x:50,y:59},{id:"lcm",p:"MC",x:33,y:56},{id:"lm",p:"ME",x:12,y:52},{id:"st1",p:"CA",x:65,y:17},{id:"st2",p:"CA",x:35,y:17}],
+  "5-3-2":[{id:"gk",p:"GOL",x:50,y:88},{id:"rwb",p:"LD",x:90,y:72},{id:"rcb",p:"ZAG",x:70,y:77},{id:"cb",p:"ZAG",x:50,y:80},{id:"lcb",p:"ZAG",x:30,y:77},{id:"lwb",p:"LE",x:10,y:72},{id:"rm",p:"MC",x:70,y:54},{id:"cm",p:"VOL",x:50,y:57},{id:"lm",p:"MC",x:30,y:54},{id:"st1",p:"CA",x:65,y:17},{id:"st2",p:"CA",x:35,y:17}],
+  "4-5-1":[{id:"gk",p:"GOL",x:50,y:88},{id:"rb",p:"LD",x:83,y:74},{id:"cb1",p:"ZAG",x:63,y:78},{id:"cb2",p:"ZAG",x:37,y:78},{id:"lb",p:"LE",x:17,y:74},{id:"rm",p:"MD",x:88,y:51},{id:"rcm",p:"MC",x:68,y:54},{id:"cm",p:"VOL",x:50,y:57},{id:"lcm",p:"MC",x:32,y:54},{id:"lm",p:"ME",x:12,y:51},{id:"st",p:"CA",x:50,y:15}],
+  "3-4-3":[{id:"gk",p:"GOL",x:50,y:88},{id:"cb1",p:"ZAG",x:68,y:76},{id:"cb2",p:"ZAG",x:50,y:79},{id:"cb3",p:"ZAG",x:32,y:76},{id:"rm",p:"MD",x:83,y:54},{id:"rcm",p:"MC",x:62,y:58},{id:"lcm",p:"MC",x:38,y:58},{id:"lm",p:"ME",x:17,y:54},{id:"rw",p:"PD",x:83,y:22},{id:"st",p:"CA",x:50,y:14},{id:"lw",p:"PE",x:17,y:22}]
+};
+const STILI={Difensivo:{a:-3,d:4},Equilibrato:{a:0,d:0},Offensivo:{a:4,d:-2}};
+/* ── ITALY DATA ───────────────────────────────────── */
+const ITA=[
+  {y:1970,r:"Finalista",s:[{id:"a70",n:"Albertosi",num:1,pos:["GOL"],f:86,l:0},{id:"z70",n:"Zoff",num:12,pos:["GOL"],f:86,l:1},{id:"fc70",n:"Facchetti",num:6,pos:["LE","ZAG"],f:90,l:1},{id:"bu70",n:"Burgnich",num:3,pos:["LD","ZAG"],f:85,l:0},{id:"ce70",n:"Cera",num:5,pos:["ZAG","VOL"],f:80,l:0},{id:"ro70",n:"Rosato",num:4,pos:["ZAG","LD"],f:79,l:0},{id:"be70",n:"Bertini",num:8,pos:["VOL","MC"],f:79,l:0},{id:"ds70",n:"De Sisti",num:9,pos:["MC","VOL"],f:82,l:0},{id:"ju70",n:"Juliano",num:15,pos:["MC","VOL"],f:79,l:0},{id:"ri70",n:"Rivera",num:10,pos:["MEI","MC"],f:89,l:1},{id:"ma70",n:"Mazzola",num:7,pos:["MEI","MC","CA"],f:88,l:1},{id:"rv70",n:"Riva",num:11,pos:["CA","PE"],f:89,l:1},{id:"bn70",n:"Boninsegna",num:13,pos:["CA","PD"],f:84,l:0},{id:"do70",n:"Domenghini",num:14,pos:["PD","PE","MC"],f:81,l:0},{id:"pr70",n:"Prati",num:16,pos:["CA","PD"],f:82,l:0}]},
+  {y:1978,r:"4° posto",s:[{id:"z78",n:"Zoff",num:1,pos:["GOL"],f:93,l:1},{id:"bo78",n:"Bordon",num:12,pos:["GOL"],f:78,l:0},{id:"ge78",n:"Gentile",num:2,pos:["LD","ZAG"],f:86,l:0},{id:"ca78",n:"Cabrini",num:3,pos:["LE","ZAG"],f:85,l:0},{id:"sc78",n:"Scirea",num:6,pos:["ZAG","VOL"],f:90,l:1},{id:"bl78",n:"Bellugi",num:5,pos:["ZAG"],f:78,l:0},{id:"ta78",n:"Tardelli",num:14,pos:["VOL","MC","MD"],f:85,l:1},{id:"be78",n:"Benetti",num:8,pos:["VOL","MC"],f:79,l:0},{id:"cs78",n:"Causio",num:17,pos:["PD","MD"],f:82,l:0},{id:"an78",n:"Antognoni",num:10,pos:["MEI","MC"],f:84,l:0},{id:"co78",n:"Conti",num:11,pos:["PD","PE","MD"],f:82,l:0},{id:"ro78",n:"Rossi",num:20,pos:["CA","PD"],f:85,l:1},{id:"bt78",n:"Bettega",num:9,pos:["CA","PD"],f:84,l:0},{id:"gr78",n:"Graziani",num:7,pos:["CA"],f:80,l:0}]},
+  {y:1982,r:"🏆 Campione",s:[{id:"z82",n:"Zoff",num:1,pos:["GOL"],f:93,l:1},{id:"bo82",n:"Bordon",num:12,pos:["GOL"],f:78,l:0},{id:"ge82",n:"Gentile",num:2,pos:["LD","ZAG"],f:88,l:0},{id:"ca82",n:"Cabrini",num:3,pos:["LE","ZAG"],f:87,l:0},{id:"sc82",n:"Scirea",num:6,pos:["ZAG","VOL"],f:91,l:1},{id:"bg82",n:"Bergomi",num:5,pos:["ZAG","LD"],f:84,l:0},{id:"cl82",n:"Collovati",num:4,pos:["ZAG"],f:80,l:0},{id:"ta82",n:"Tardelli",num:14,pos:["VOL","MC","MD"],f:89,l:1},{id:"or82",n:"Oriali",num:16,pos:["VOL","MC"],f:80,l:0},{id:"at82",n:"Antognoni",num:10,pos:["MEI","MC"],f:86,l:0},{id:"co82",n:"Conti",num:11,pos:["PD","PE","MD"],f:86,l:0},{id:"ro82",n:"P.Rossi",num:20,pos:["CA","PD"],f:92,l:1},{id:"al82",n:"Altobelli",num:9,pos:["CA"],f:84,l:0},{id:"ms82",n:"Massaro",num:8,pos:["CA","PD","PE"],f:78,l:0},{id:"gr82",n:"Graziani",num:15,pos:["CA"],f:80,l:0}]},
+  {y:1990,r:"3° posto",s:[{id:"ze90",n:"Zenga",num:1,pos:["GOL"],f:88,l:0},{id:"tc90",n:"Tacconi",num:12,pos:["GOL"],f:82,l:0},{id:"ba90",n:"Baresi",num:6,pos:["ZAG","VOL"],f:93,l:1},{id:"ml90",n:"Maldini",num:3,pos:["LE","ZAG"],f:94,l:1},{id:"bg90",n:"Bergomi",num:5,pos:["ZAG","LD"],f:88,l:0},{id:"fe90",n:"Ferrara",num:4,pos:["ZAG","LE"],f:82,l:0},{id:"fr90",n:"Ferri",num:2,pos:["ZAG","LD"],f:80,l:0},{id:"da90",n:"De Agostini",num:14,pos:["LE","LD"],f:79,l:0},{id:"ac90",n:"Ancelotti",num:8,pos:["MC","VOL"],f:82,l:0},{id:"dn90",n:"Donadoni",num:11,pos:["MC","PD","MD"],f:84,l:0},{id:"gi90",n:"Giannini",num:10,pos:["MEI","MC"],f:84,l:0},{id:"be90",n:"Berti",num:7,pos:["MC","MEI"],f:80,l:0},{id:"rb90",n:"R.Baggio",num:9,pos:["MEI","CA","PE"],f:93,l:1},{id:"sh90",n:"Schillaci",num:19,pos:["CA","PD"],f:86,l:1},{id:"vi90",n:"Vialli",num:18,pos:["CA","PE"],f:86,l:0}]},
+  {y:1994,r:"Finalista",s:[{id:"pa94",n:"Pagliuca",num:1,pos:["GOL"],f:85,l:0},{id:"mc94",n:"Marchegiani",num:12,pos:["GOL"],f:79,l:0},{id:"ba94",n:"Baresi",num:6,pos:["ZAG","VOL"],f:93,l:1},{id:"ml94",n:"Maldini",num:3,pos:["LE","ZAG"],f:94,l:1},{id:"cc94",n:"Costacurta",num:5,pos:["ZAG"],f:86,l:0},{id:"ts94",n:"Tassotti",num:4,pos:["LD","ZAG"],f:80,l:0},{id:"bn94",n:"Benarrivo",num:15,pos:["LE","ZAG"],f:77,l:0},{id:"ab94",n:"Albertini",num:8,pos:["VOL","MC"],f:83,l:0},{id:"db94",n:"D.Baggio",num:14,pos:["MC","VOL","MEI"],f:82,l:0},{id:"ct94",n:"Conte",num:16,pos:["MC","VOL"],f:79,l:0},{id:"rb94",n:"R.Baggio",num:10,pos:["MEI","CA","PE"],f:93,l:1},{id:"zo94",n:"Zola",num:21,pos:["MEI","CA","PE"],f:82,l:0},{id:"si94",n:"Signori",num:9,pos:["CA","PE"],f:82,l:0},{id:"cs94",n:"Casiraghi",num:18,pos:["CA"],f:78,l:0}]},
+  {y:1998,r:"Quarti",s:[{id:"pa98",n:"Pagliuca",num:1,pos:["GOL"],f:85,l:0},{id:"bf98",n:"Buffon",num:12,pos:["GOL"],f:82,l:1},{id:"ml98",n:"Maldini",num:3,pos:["LE","ZAG"],f:94,l:1},{id:"cn98",n:"Cannavaro",num:5,pos:["ZAG"],f:90,l:1},{id:"ne98",n:"Nesta",num:15,pos:["ZAG"],f:88,l:1},{id:"cc98",n:"Costacurta",num:6,pos:["ZAG"],f:84,l:0},{id:"tr98",n:"Torricelli",num:2,pos:["LD","ZAG"],f:77,l:0},{id:"ps98",n:"Pessotto",num:4,pos:["LE","LD"],f:76,l:0},{id:"ab98",n:"Albertini",num:8,pos:["VOL","MC"],f:83,l:0},{id:"dm98",n:"Di Matteo",num:14,pos:["MC","VOL"],f:80,l:0},{id:"rb98",n:"R.Baggio",num:18,pos:["MEI","CA"],f:91,l:1},{id:"dp98",n:"Del Piero",num:7,pos:["CA","MEI","PE"],f:88,l:1},{id:"ve98",n:"Vieri",num:9,pos:["CA"],f:86,l:0},{id:"in98",n:"Inzaghi",num:10,pos:["CA"],f:83,l:0}]},
+  {y:2002,r:"Ottavi",s:[{id:"bf02",n:"Buffon",num:1,pos:["GOL"],f:90,l:1},{id:"cn02",n:"Cannavaro",num:5,pos:["ZAG"],f:92,l:1},{id:"ne02",n:"Nesta",num:6,pos:["ZAG"],f:90,l:1},{id:"ml02",n:"Maldini",num:3,pos:["LE","ZAG"],f:91,l:1},{id:"pn02",n:"Panucci",num:2,pos:["LD","ZAG"],f:79,l:0},{id:"pi02",n:"Pirlo",num:8,pos:["VOL","MC"],f:86,l:1},{id:"ab02",n:"Albertini",num:4,pos:["VOL","MC"],f:80,l:0},{id:"zm02",n:"Zambrotta",num:19,pos:["LD","LE","MD"],f:82,l:0},{id:"tt02",n:"Totti",num:10,pos:["MEI","CA"],f:87,l:1},{id:"ve02",n:"Vieri",num:9,pos:["CA"],f:87,l:0},{id:"dp02",n:"Del Piero",num:7,pos:["CA","MEI","PE"],f:88,l:1},{id:"in02",n:"Inzaghi",num:11,pos:["CA"],f:83,l:0}]},
+  {y:2006,r:"🏆 Campione",s:[{id:"bf06",n:"Buffon",num:1,pos:["GOL"],f:95,l:1},{id:"cn06",n:"Cannavaro",num:5,pos:["ZAG"],f:93,l:1},{id:"ne06",n:"Nesta",num:15,pos:["ZAG"],f:91,l:1},{id:"mt06",n:"Materazzi",num:23,pos:["ZAG","LD"],f:84,l:0},{id:"bz06",n:"Barzagli",num:2,pos:["ZAG","LD"],f:82,l:0},{id:"zm06",n:"Zambrotta",num:19,pos:["LD","LE","MD"],f:86,l:0},{id:"gr06",n:"Grosso",num:3,pos:["LE","ZAG"],f:82,l:0},{id:"pi06",n:"Pirlo",num:21,pos:["VOL","MC"],f:93,l:1},{id:"ga06",n:"Gattuso",num:8,pos:["VOL","MC"],f:84,l:0},{id:"dr06",n:"De Rossi",num:16,pos:["VOL","MC"],f:84,l:0},{id:"cm06",n:"Camoranesi",num:20,pos:["MD","PD","MC"],f:80,l:0},{id:"tt06",n:"Totti",num:10,pos:["MEI","CA"],f:89,l:1},{id:"dp06",n:"Del Piero",num:7,pos:["CA","MEI","PE"],f:90,l:1},{id:"tn06",n:"Toni",num:9,pos:["CA"],f:83,l:0},{id:"in06",n:"Inzaghi",num:11,pos:["CA"],f:85,l:0}]},
+  {y:2014,r:"Fase gironi",s:[{id:"bf14",n:"Buffon",num:1,pos:["GOL"],f:90,l:1},{id:"ch14",n:"Chiellini",num:3,pos:["ZAG","LE"],f:88,l:0},{id:"bz14",n:"Barzagli",num:15,pos:["ZAG","LD"],f:85,l:0},{id:"bn14",n:"Bonucci",num:19,pos:["ZAG"],f:87,l:0},{id:"ab14",n:"Abate",num:2,pos:["LD"],f:78,l:0},{id:"pi14",n:"Pirlo",num:21,pos:["VOL","MC"],f:88,l:1},{id:"dr14",n:"De Rossi",num:16,pos:["VOL","MC"],f:83,l:0},{id:"mc14",n:"Marchisio",num:8,pos:["MC","VOL"],f:83,l:0},{id:"vr14",n:"Verratti",num:18,pos:["MC","VOL"],f:82,l:0},{id:"ba14",n:"Balotelli",num:9,pos:["CA"],f:82,l:0},{id:"im14",n:"Immobile",num:17,pos:["CA"],f:80,l:0},{id:"cd14",n:"Candreva",num:7,pos:["PD","MD"],f:79,l:0}]}
+];
+const OPP=[
+  {s:"BRA",y:1970,n:"Brasile",f:"🇧🇷",o:96,sq:[{n:"Félix"},{n:"Carlos Alberto"},{n:"Brito"},{n:"Piazza"},{n:"Everaldo"},{n:"Clodoaldo"},{n:"Gérson"},{n:"Rivellino"},{n:"Jairzinho"},{n:"Tostão"},{n:"Pelé"}]},
+  {s:"GER",y:2014,n:"Germania",f:"🇩🇪",o:94,sq:[{n:"Neuer"},{n:"Lahm"},{n:"Hummels"},{n:"Boateng"},{n:"Höwedes"},{n:"Kroos"},{n:"Khedira"},{n:"Schweini"},{n:"Özil"},{n:"T.Müller"},{n:"Klose"}]},
+  {s:"ARG",y:1986,n:"Argentina",f:"🇦🇷",o:93,sq:[{n:"Pumpido"},{n:"Cuciuffo"},{n:"Ruggeri"},{n:"Brown"},{n:"Olarticoechea"},{n:"Burruchaga"},{n:"Giusti"},{n:"Enrique"},{n:"Maradona"},{n:"Valdano"},{n:"Pasculli"}]},
+  {s:"FRA",y:1998,n:"Francia",f:"🇫🇷",o:92,sq:[{n:"Barthez"},{n:"Thuram"},{n:"Leboeuf"},{n:"Desailly"},{n:"Lizarazu"},{n:"Deschamps"},{n:"Vieira"},{n:"Petit"},{n:"Zidane"},{n:"Djorkaeff"},{n:"Guivarc'h"}]},
+  {s:"ESP",y:2010,n:"Spagna",f:"🇪🇸",o:92,sq:[{n:"Casillas"},{n:"Ramos"},{n:"Piqué"},{n:"Puyol"},{n:"Capdevila"},{n:"Busquets"},{n:"X.Alonso"},{n:"Xavi"},{n:"Iniesta"},{n:"Villa"},{n:"Torres"}]},
+  {s:"NED",y:1974,n:"Olanda",f:"🇳🇱",o:91,sq:[{n:"Jongbloed"},{n:"Suurbier"},{n:"Rijsbergen"},{n:"Haan"},{n:"Krol"},{n:"Jansen"},{n:"Neeskens"},{n:"Van Hanegem"},{n:"Rensenbrink"},{n:"Rep"},{n:"Cruyff"}]},
+  {s:"GER",y:1990,n:"Germania",f:"🇩🇪",o:87,sq:[{n:"Illgner"},{n:"Reuter"},{n:"Kohler"},{n:"Buchwald"},{n:"Brehme"},{n:"Littbarski"},{n:"Häßler"},{n:"Matthaus"},{n:"Völler"},{n:"Klinsmann"},{n:"Möller"}]},
+  {s:"ARG",y:2022,n:"Argentina",f:"🇦🇷",o:93,sq:[{n:"E.Martínez"},{n:"Molina"},{n:"C.Romero"},{n:"Otamendi"},{n:"Tagliafico"},{n:"De Paul"},{n:"Fernández"},{n:"MacAllister"},{n:"Di María"},{n:"J.Álvarez"},{n:"Messi"}]},
+  {s:"BRA",y:2002,n:"Brasile",f:"🇧🇷",o:93,sq:[{n:"Marcos"},{n:"Cafu"},{n:"Lúcio"},{n:"R.Junior"},{n:"R.Carlos"},{n:"G.Silva"},{n:"Edmilson"},{n:"Ricardinho"},{n:"Ronaldinho"},{n:"Ronaldo"},{n:"Rivaldo"}]},
+  {s:"ENG",y:1966,n:"Inghilterra",f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",o:88,sq:[{n:"Banks"},{n:"Cohen"},{n:"J.Charlton"},{n:"Moore"},{n:"Wilson"},{n:"Stiles"},{n:"Ball"},{n:"Peters"},{n:"B.Charlton"},{n:"Hurst"},{n:"Hunt"}]},
+  {s:"HUN",y:1954,n:"Ungheria",f:"🇭🇺",o:86,sq:[{n:"Grosics"},{n:"Buzánszky"},{n:"Lóránt"},{n:"Lantos"},{n:"Bozsik"},{n:"Zakariás"},{n:"Hidegkuti"},{n:"Kocsis"},{n:"Puskás"},{n:"Czibor"},{n:"Budai"}]},
+  {s:"POR",y:2006,n:"Portogallo",f:"🇵🇹",o:87,sq:[{n:"Ricardo"},{n:"M.Ferreira"},{n:"R.Carvalho"},{n:"Meira"},{n:"Valente"},{n:"Costinha"},{n:"Petit"},{n:"Maniche"},{n:"Figo"},{n:"Deco"},{n:"Pauleta"}]},
+  {s:"BEL",y:2018,n:"Belgio",f:"🇧🇪",o:84,sq:[{n:"Courtois"},{n:"Meunier"},{n:"Alderweireld"},{n:"Kompany"},{n:"Vertonghen"},{n:"Witsel"},{n:"De Bruyne"},{n:"Fellaini"},{n:"Hazard"},{n:"Mertens"},{n:"Lukaku"}]},
+  {s:"MAR",y:2022,n:"Marocco",f:"🇲🇦",o:79,sq:[{n:"Bounou"},{n:"Hakimi"},{n:"Aguerd"},{n:"Saïss"},{n:"Mazraoui"},{n:"Amrabat"},{n:"Ounahi"},{n:"Ziyech"},{n:"Boufal"},{n:"En-Nesyri"},{n:"Hakim"}]}
+];
+const EURO_OPP=[
+  {s:"ENG",y:1966,n:"Inghilterra",f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",o:85},{s:"GER",y:1990,n:"Germania",f:"🇩🇪",o:84},
+  {s:"ESP",y:2010,n:"Spagna",f:"🇪🇸",o:84},{s:"NED",y:1974,n:"Olanda",f:"🇳🇱",o:83},
+  {s:"FRA",y:1998,n:"Francia",f:"🇫🇷",o:85},{s:"BEL",y:2018,n:"Belgio",f:"🇧🇪",o:81},
+  {s:"POR",y:2006,n:"Portogallo",f:"🇵🇹",o:82},{s:"GER",y:2014,n:"Germania",f:"🇩🇪",o:88}
+];
+
+/* ── STORIA EDIZIONI ─────────────────────────────── */
+const STORIA={
+  1970:{
+    titolo:"Mexico '70 — La notte più lunga",
+    hero:"4 gol in 11 minuti. Una semifinale che divenne leggenda.",
+    testo:"Nel caldo opprimente del Azteca, il 17 giugno 1970, l'Italia giocò la partita più bella della sua storia. Germania 4-3, dopo i supplementari, in un duello che tenne il mondo col fiato sospeso. Rivera, Riva, Boninsegna. Poi la finale contro il Brasile di Pelé: 1-4. L'argento fa male, ma quella notte resta per sempre.",
+    idoli:["Rivera","Riva","Boninsegna"],
+    emoji:"🌙"
+  },
+  1978:{
+    titolo:"Argentina '78 — Il futuro è qui",
+    hero:"Zoff, Gentile, Cabrini, Tardelli. La squadra del domani.",
+    testo:"Quarto posto in Argentina con una squadra che stava nascendo. Zoff tra i pali, la difesa a quattro più solida d'Europa, Rossi in avanti ancora acerbo. L'eliminazione nel girone finale lascia amarezza, ma chi c'era sapeva: questa Italia avrebbe rivinto.",
+    idoli:["Zoff","Tardelli","Rossi"],
+    emoji:"🌅"
+  },
+  1982:{
+    titolo:"Spagna '82 — Il trionfo",
+    hero:"Quel grido di Tardelli è il suono più bello del calcio italiano.",
+    testo:"Arrivammo in Spagna fischiati. Uscimmo dalla fase a gironi quasi per miracolo. Poi Paulo Rossi esplose: tre gol al Brasile, due alla Polonia, uno in finale. Tardelli segnò e urlò al mondo la sua gioia. Zoff a quarant'anni alzò la coppa. L'undici luglio 1982 è il giorno più bello della nostra storia.",
+    idoli:["P.Rossi","Tardelli","Zoff"],
+    emoji:"🏆"
+  },
+  1990:{
+    titolo:"Italia '90 — Italia Mundial",
+    hero:"Schillaci. Un nome che il mondo non conosceva. Un'estate che non dimenticheremo.",
+    testo:"Il mondiale in casa. Le notti di Schillaci, l'eroe inatteso di Palermo. Poi quella semifinale maledetta con l'Argentina ai rigori a Napoli — nel silenzio dello stadio di casa loro. Il terzo posto contro l'Inghilterra. La canzone di Bennato e Nannini. L'estate più bella.",
+    idoli:["Schillaci","R.Baggio","Baresi"],
+    emoji:"⭐"
+  },
+  1994:{
+    titolo:"USA '94 — Il dischetto di Pasadena",
+    hero:"Roberto si avvicinò al dischetto. Il pallone volò alto.",
+    testo:"La finale di Pasadena sotto il sole della California. Brasile-Italia 0-0 dopo supplementari. Massaro, Baresi, Albertini, Evani segnano. Poi Roberto Baggio. Glielo diedero sapendo che era l'unico in grado di sbagliarlo — o forse no. Il pallone superò la traversa. Il Brasile esultò. L'immagine più malinconica del calcio italiano.",
+    idoli:["R.Baggio","Baresi","Maldini"],
+    emoji:"💧"
+  },
+  1998:{
+    titolo:"Francia '98 — Ancora rigori",
+    hero:"Di nuovo la lotteria. Di nuovo la Francia.",
+    testo:"Quarti di finale contro i padroni di casa. Un'Italia solida, con Del Piero e Vieri in attacco, Maldini e Cannavaro in difesa. Gara tiratissima, 0-0 dopo 120 minuti. Ai rigori Demetrio Albertini parte forte, ma poi Costacurta e Di Biagio sbagliano. I Bleus di Zidane passano. Sarà il loro mondiale.",
+    idoli:["Del Piero","Vieri","Maldini"],
+    emoji:"🎭"
+  },
+  2002:{
+    titolo:"Korea '02 — La ferita aperta",
+    hero:"Un gol annullato. Un'espulsione. Una sconfitta che brucia ancora.",
+    testo:"Il mondiale più controverso. Il gol di Vieri al 119' annullato contro la Corea. Totti espulso. Tomasson che segna il golden gol. L'Italia esce agli ottavi tra le polemiche. Buffon para tutto, Pirlo prova a inventare, ma l'arbitraggio segnò quella spedizione in modo indelebile.",
+    idoli:["Buffon","Totti","Vieri"],
+    emoji:"😤"
+  },
+  2006:{
+    titolo:"Germania '06 — La quarta stella",
+    hero:"Grosso corse verso il corner. Il mondo si fermò.",
+    testo:"Berlino, 9 luglio 2006. Cannavaro uomo totale, Pirlo regista assoluto. Poi Zidane e la sua testata a Materazzi — espulso all'ultimo atto della carriera. Trezeguet sbagliò il rigore decisivo. Grosso trasformò il suo. Cannavaro alzò la quarta Coppa del Mondo. Campioni.",
+    idoli:["Buffon","Cannavaro","Pirlo"],
+    emoji:"🏆"
+  },
+  2014:{
+    titolo:"Brasile '14 — La fine di un'era",
+    hero:"Balotelli segnò il gol più bello. Non bastò.",
+    testo:"Mario Balotelli contro l'Inghilterra: controllo, tiro, gol. Un momento di pura qualità. Ma poi il Costa Rica ci batté nel momento cruciale. Pirlo e Buffon ancora titolari, Verratti e De Rossi a centrocampo. Non bastò. Eliminati nel girone. La fine del ciclo. Da lì in poi, il buio.",
+    idoli:["Pirlo","Buffon","Balotelli"],
+    emoji:"🌧"
+  }
+};
+
+/* ── ENGINE ───────────────────────────────────────── */
+const rng=()=>Math.random();const pick=a=>a[Math.floor(rng()*a.length)];const clamp=(v,l,h)=>Math.max(l,Math.min(h,v));
+function poisson(lam){const e=Math.exp(-lam);let k=0,p=1;do{k++;p*=rng()}while(p>e);return k-1}
+function gCount(att,def){return Math.min(7,Math.max(0,poisson(clamp(1.4+(att-def)*0.08,0.15,5))))}
+function gMins(n){const s=new Set();while(s.size<n)s.add(1+Math.floor(89*Math.pow(rng(),0.85)));return[...s].sort((a,b)=>a-b)}
+function scorers(sq,n){if(!sq||!sq.length||n===0)return[];const wt={"CA":8,"MEI":4,"PD":4,"PE":4,"MC":2,"VOL":1};const pool=sq.flatMap(p=>{const w=(p.pos||[]).reduce((m,r)=>Math.max(m,wt[r]||0.5),1);return Array(Math.max(1,Math.round(w))).fill(p)});return Array(n).fill(0).map(()=>pick(pool)||sq[0])}
+function penKicks(itaW,iSq,oSq){const nm=(sq,n)=>[...sq].sort((a,b)=>(b.f||80)-(a.f||80)).slice(0,n).map(p=>p.n||p.name||"?");const it=nm(iSq,5),op=oSq&&oSq.length?nm([...oSq],5):["Avv1","Avv2","Avv3","Avv4","Avv5"];const ik=Array(5).fill(0).map(()=>rng()<(itaW?0.78:0.56));const ok=Array(5).fill(0).map(()=>rng()<(itaW?0.56:0.78));const iT=ik.filter(Boolean).length,oT=ok.filter(Boolean).length;if(itaW&&iT<=oT){const i=ik.indexOf(false);if(i>=0)ik[i]=true;else{const j=ok.lastIndexOf(true);if(j>=0)ok[j]=false}}else if(!itaW&&oT<=iT){const i=ok.indexOf(false);if(i>=0)ok[i]=true;else{const j=ik.lastIndexOf(true);if(j>=0)ik[j]=false}}const k=[];for(let i=0;i<5;i++){k.push({s:"ita",n:it[i],sc:ik[i]});k.push({s:"opp",n:op[i],sc:ok[i]})}return k}
+function simM(iStr,oStr,isKO,iSq,oSq,style,playerStats){
+  const st=STILI[style]||{a:0,d:0};const gf=gCount(iStr+st.a*0.5,oStr),ga=gCount(oStr,iStr+st.d*0.5);
+  // Quando oSq è vuoto (es. qualificazioni) NON ricadere su iSq italiano
+  const GENERIC_OPP=[{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"},{n:"Avversario"}];
+  const effectiveOSq=oSq&&oSq.length?oSq:GENERIC_OPP;
+  const iSc=scorers(iSq,gf),oSc=scorers(effectiveOSq,ga);
+  const iM=gMins(gf),oM=gMins(ga).map(m=>iM.includes(m)?m+1:m);
+  const goals=[...iSc.map((p,i)=>({min:iM[i]||45,name:p.n||p,id:p.id,ita:true})),...oSc.map((p,i)=>({min:oM[i]||50,name:p.n||p.name||"?",ita:false}))].sort((a,b)=>a.min-b.min);
+  // Track stats
+  if(playerStats){for(const g of goals){if(g.ita&&g.id){playerStats[g.id]=(playerStats[g.id]||0)+1}}}
+  let winner=gf>ga?"ITA":ga>gf?"OPP":"DRAW",pens=null,kicks=null;
+  if(isKO&&gf===ga){const w=rng()<clamp(0.5+(iStr-oStr)*0.012,0.1,0.9);pens=w?"5-4":"4-5";winner=w?"ITA":"OPP";kicks=penKicks(w,iSq,oSq)}
+  return{gf,ga,goals,winner,pens,kicks}
+}
+function runQualification(xi,iStr,style){
+  const opps=EURO_OPP.filter((o,i,a)=>a.findIndex(x=>x.s===o.s&&x.y===o.y)===i);
+  const grp=[pick(opps)];const used=new Set([grp[0].s+grp[0].y]);
+  let o2=pick(opps.filter(o=>!used.has(o.s+o.y)));grp.push(o2||grp[0]);
+  const ps={};let myP=0,wins=0,draws=0,losses=0,gf=0,ga=0;
+  const events=[];
+  for(const opp of grp){
+    const m=simM(iStr,opp.o,false,xi,[],style,ps);
+    gf+=m.gf;ga+=m.ga;
+    if(m.winner==="ITA"){wins++;myP+=3}else if(m.winner==="DRAW"){draws++;myP+=1}else{losses++}
+    events.push({t:"match",round:"Qualificazioni UEFA",opp,m});
+  }
+  const qualified=myP>=2;
+  events.push({t:"qualEnd",qualified,pts:myP,wins,draws,losses,gf,ga});
+  return{events,qualified};
+}
+function runT(xi,iStr,style){
+  const used=new Set();const drawOpp=()=>{const a=OPP.filter(o=>!used.has(o.s+o.y));const o=pick(a.length?a:OPP);used.add(o.s+o.y);return o};
+  const events=[];let sv=false,wins=0,draws=0,losses=0,tgf=0,tga=0;const ps={};
+  const grp=[drawOpp(),drawOpp(),drawOpp()];
+  const gt=[{nm:"🇮🇹 Italia",pts:0,gf:0,ga:0,me:true},...grp.map(o=>({nm:o.f+" "+o.n+" '"+String(o.y).slice(2),pts:0,gf:0,ga:0,me:false}))];
+  let myP=0;
+  for(let i=0;i<3;i++){const opp=grp[i];const m=simM(iStr,opp.o,false,xi,opp.sq,style,ps);if(m.gf===7&&m.ga===0)sv=true;tgf+=m.gf;tga+=m.ga;if(m.winner==="ITA"){wins++;myP+=3;gt[0].pts+=3}else if(m.winner==="DRAW"){draws++;myP+=1;gt[0].pts+=1;gt[i+1].pts+=1}else{losses++;gt[i+1].pts+=3}gt[0].gf+=m.gf;gt[0].ga+=m.ga;gt[i+1].gf+=m.ga;gt[i+1].ga+=m.gf;events.push({t:"match",round:"Gironi",opp,m})}
+  const qualified=myP>=4;const table=[...gt].sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
+  events.push({t:"standings",qualified,pts:myP,table});
+  if(!qualified){events.push({t:"end",champion:false,where:"gironi",sv,wins,draws,losses,gf:tgf,ga:tga,playerStats:ps});return{events,iStr}}
+  for(const round of["Ottavi","Quarti","Semifinale","Finale"]){
+    const opp=drawOpp();const m=simM(iStr,opp.o,true,xi,opp.sq,style,ps);if(m.gf===7&&m.ga===0)sv=true;tgf+=m.gf;tga+=m.ga;
+    // Infortuni: 15% chance KO match
+    let injury=null;if(rng()<0.15){const victims=xi.filter(p=>p.pos[0]!=="GOL");if(victims.length){injury=pick(victims)}}
+    if(m.winner==="ITA")wins++;else if(m.winner==="DRAW")draws++;else losses++;
+    events.push({t:"match",round,opp,m,injury});
+    if(m.winner==="OPP"){events.push({t:"end",champion:false,where:round.toLowerCase(),sv,wins,draws,losses,gf:tgf,ga:tga,playerStats:ps});return{events,iStr}}
+  }
+  events.push({t:"end",champion:true,sv,wins,draws,losses,gf:tgf,ga:tga,playerStats:ps});return{events,iStr}
+}
+/* ── SHARED COMPONENTS ────────────────────────────── */
+const Tri=()=><div style={{height:3,background:"linear-gradient(90deg,"+GR+" 33%,white 33% 66%,"+RED+" 66%)"}}/>;
+const RB=({pos,sm})=><span style={{fontFamily:"'Inter',sans-serif",fontWeight:700,fontSize:sm?9:10,color:"#fff",background:RC[pos]||"#555",padding:sm?"1px 4px":"2px 6px",borderRadius:3,display:"inline-block"}}>{RI[pos]||pos}</span>;
+
+function ThemeBtn({theme,setTheme}){
+  return(
+    <button onClick={()=>{const t=theme==="dark"?"light":"dark";setTheme(t);document.documentElement.setAttribute("data-theme",t)}} className="pill" style={{padding:"5px 12px",fontSize:13,fontFamily:"'Bebas Neue',sans-serif",letterSpacing:1}}>
+      {theme==="dark"?"☀ LIGHT":"🌙 DARK"}
+    </button>
+  );
+}
+
+function Pitch({slots,assign,hlSlots,onSlotTap}){
+  const theme=useTheme();
+  return(
+    <div style={{position:"relative",width:"100%",aspectRatio:"3/4.1",background:"repeating-linear-gradient(180deg,#1b7438 0 11%,#186832 11% 22%)"}}>
+      <div style={{position:"absolute",inset:"3.5%",border:"1.5px solid rgba(255,255,255,.18)",borderRadius:4,pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:"50%",left:"3.5%",right:"3.5%",height:1,background:"rgba(255,255,255,.13)",pointerEvents:"none"}}/>
+      {slots.map((s,idx)=>{const p=assign?assign[idx]:null;const isHL=hlSlots&&hlSlots.includes(idx);
+        const bg=p?"linear-gradient(145deg,"+GOLD+","+GOLDL+")":"transparent";
+        const border=p?"2.5px solid rgba(255,255,255,0.9)":isHL?"2.5px solid "+GOLDL:"2px dashed rgba(255,255,255,0.38)";
+        return(
+          <div key={s.id} className="slot-wrap" onClick={isHL?()=>onSlotTap&&onSlotTap(idx):undefined} style={{top:s.y+"%",left:s.x+"%",cursor:isHL?"pointer":"default"}}>
+            <div className={"slot-circle"+(isHL?" hl":"")} style={{width:42,height:42,background:bg,border}}>
+              {p?<span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:14,color:"#111",lineHeight:1}}>{p.num}</span>
+                :<span style={{fontFamily:"'Inter',sans-serif",fontWeight:600,fontSize:10,color:"rgba(255,255,255,.7)",letterSpacing:.3}}>{RI[s.p]}</span>}
+            </div>
+            {p&&<div className="slot-name">{p.n}{p.l?" ★":""}</div>}
+          </div>
+        );
+      })}
+      {hlSlots&&hlSlots.length>0&&<div style={{position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",background:"rgba(201,162,39,.95)",color:"#111",fontFamily:"'Inter',sans-serif",fontSize:11,fontWeight:700,padding:"5px 14px",borderRadius:20,whiteSpace:"nowrap",pointerEvents:"none"}}>Tocca il campo dove schierarlo</div>}
+    </div>
+  );
+}
+
+/* ── NEWS ─────────────────────────────────────────── */
+function News(){
+  const [news,setNews]=useState([]);const [loading,setLoading]=useState(true);
+  useEffect(()=>{
+    fetch("https://api.allorigins.win/get?url="+encodeURIComponent("https://www.gazzetta.it/dynamic-feed/rss/section/Calcio/nazionali.xml"))
+      .then(r=>r.json()).then(d=>{
+        if(!d.contents)return;
+        const x=new DOMParser().parseFromString(d.contents,"text/xml");
+        setNews([...x.querySelectorAll("item")].slice(0,5).map(el=>({
+          title:el.querySelector("title")?.textContent||"",
+          link:el.querySelector("link")?.textContent||"#",
+          date:(el.querySelector("pubDate")?.textContent||"").slice(0,16)
+        })));
+      }).catch(()=>{}).finally(()=>setLoading(false));
+  },[]);
+  if(loading)return<div style={{color:"var(--muted)",fontSize:12,padding:"8px 0"}}>Caricamento notizie Gazzetta...</div>;
+  if(!news.length)return<div style={{color:"var(--muted)",fontSize:12,padding:"8px 0"}}>Notizie non disponibili al momento.</div>;
+  return(<div>{news.map((n,i)=><a key={i} href={n.link} target="_blank" rel="noopener" className="news-item"><div style={{fontSize:13,fontWeight:600,color:"var(--text)",lineHeight:1.4,marginBottom:2}}>{n.title}</div><div style={{fontSize:10,color:"var(--muted)"}}>{n.date}</div></a>)}</div>);
+}
+
+/* ── LANDING ──────────────────────────────────────── */
+const P433=[{id:"gk",p:"GOL",x:50,y:88},{id:"rb",p:"LD",x:83,y:74},{id:"cb1",p:"ZAG",x:63,y:78},{id:"cb2",p:"ZAG",x:37,y:78},{id:"lb",p:"LE",x:17,y:74},{id:"dm",p:"VOL",x:50,y:59},{id:"cm",p:"MC",x:70,y:48},{id:"am",p:"MEI",x:30,y:48},{id:"rw",p:"PD",x:83,y:22},{id:"st",p:"CA",x:50,y:14},{id:"lw",p:"PE",x:17,y:22}];
+const PA=P433.reduce((a,s,i)=>{const M={gk:{n:"Buffon",num:1,pos:["GOL"],l:1},rb:{n:"Zambrotta",num:19,pos:["LD"],l:0},cb1:{n:"Cannavaro",num:5,pos:["ZAG"],l:1},cb2:{n:"Nesta",num:15,pos:["ZAG"],l:1},lb:{n:"Maldini",num:3,pos:["LE"],l:1},dm:{n:"Pirlo",num:21,pos:["VOL"],l:1},cm:{n:"Gattuso",num:8,pos:["MC"],l:0},am:{n:"De Rossi",num:16,pos:["MEI"],l:0},rw:{n:"Del Piero",num:7,pos:["PD"],l:1},st:{n:"Toni",num:9,pos:["CA"],l:0},lw:{n:"Schillaci",num:11,pos:["PE"],l:1}};a[i]=M[s.id];return a},{});
+
+function Landing({onPlay,onStoria,theme,setTheme}){
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Tri/>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 16px"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:3,color:"var(--muted)"}}>ITALIA MUNDIAL · 1950 — 2014</div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={onStoria} className="pill" style={{padding:"5px 12px",fontSize:12,fontFamily:"'Bebas Neue',sans-serif",letterSpacing:1}}>📖 STORIA</button>
+          <ThemeBtn theme={theme} setTheme={setTheme}/>
+        </div>
+      </div>
+      {/* Hero: mobile stacked like 7a0 screen 6 */}
+      <div style={{padding:"8px 16px 0"}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,letterSpacing:5,color:GOLD,marginBottom:4}}>★  ★  ★  ★</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",lineHeight:.87}}>
+          <div style={{fontSize:"clamp(52px,14vw,88px)",color:"var(--text)"}}>NOTTI</div>
+          <div style={{fontSize:"clamp(52px,14vw,88px)",color:AZ}}>MAGICHE</div>
+        </div>
+        <AdSlot id="landing-top" format="banner"/>
+        <p style={{fontSize:15,lineHeight:1.6,color:"var(--text)",margin:"12px 0 6px",maxWidth:440}}>Sorteggia la spedizione azzurra. Costruisci il tuo undici dei sogni. Riporta l'Italia sul tetto del mondo.</p>
+        <p style={{fontSize:13,lineHeight:1.5,color:"var(--muted)",margin:"0 0 20px",maxWidth:440}}>L'Italia non è ai Mondiali dal 2018. Scegli i campioni delle edizioni 1950–2014 e scopri se puoi cambiare la storia.</p>
+        <button onClick={onPlay} className="btn-red" style={{maxWidth:240,display:"block",marginBottom:24}}>GIOCA ORA →</button>
+      </div>
+      {/* Pitch preview */}
+      <div style={{padding:"0 16px 24px",maxWidth:440}}>
+        <Pitch slots={P433} assign={PA}/>
+      </div>
+      {/* Steps like 7a0 */}
+      <div style={{borderTop:"1px solid var(--sep)",borderBottom:"1px solid var(--sep)",margin:"0 0 24px"}}>
+        {[["01","🎲","SORTEGGIA","Estrai una spedizione Azzurra storica"],["02","⚽","COSTRUISCI","Scegli il tuo campione sul campo"],["03","📊","SIMULA","Vinci il Mondiale?"]].map(([n,ic,t,d])=>(
+          <div key={n} style={{display:"flex",gap:12,padding:"12px 16px",borderBottom:"1px solid var(--sep)"}}>
+            <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:RED,lineHeight:1,flexShrink:0}}>{n}</span>
+            <span style={{fontSize:18,flexShrink:0}}>{ic}</span>
+            <div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:1,color:"var(--text)"}}>{t}</div><div style={{fontSize:11,color:"var(--muted)",marginTop:2}}>{d}</div></div>
+          </div>
+        ))}
+      </div>
+      {/* Stats */}
+      <div style={{display:"flex",gap:24,padding:"0 16px 28px",justifyContent:"center"}}>
+        {[["9","edizioni"],["140+","calciatori"],["250+","avversari"]].map(([n,l])=>(
+          <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:24,color:GOLDL}}>{n}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,letterSpacing:1,color:"var(--muted)"}}>{l.toUpperCase()}</div></div>
+        ))}
+      </div>
+      {/* SEO content */}
+      <div style={{padding:"0 16px",maxWidth:520}}>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:3,color:"var(--muted)",marginBottom:10}}>NOTIZIE · GAZZETTA DELLO SPORT</div>
+        <News/>
+      </div>
+      {/* Footer */}
+      <div style={{borderTop:"1px solid var(--sep)",padding:"16px",textAlign:"center"}}>
+        <div style={{fontSize:11,color:"var(--muted)",lineHeight:1.8}}>
+          <span>Dati storici da <a href="https://7a0.com.br" target="_blank" rel="noopener" style={{color:"var(--muted)",textDecoration:"underline"}}>7a0.com.br</a></span>
+          {" · "}
+          <a href="https://twitter.com/ItaliaMundial_it" target="_blank" rel="noopener" style={{color:"var(--muted)"}}>𝕏 @ItaliaMundial_it</a>
+          {" · "}
+          <span>© 2025 Italia Mundial</span>
+        </div>
+        <AdSlot id="landing-top" format="banner" style={{margin:"8px auto 0", maxWidth:728}}/>
+      </div>
+      <Tri/>
+    </div>
+  );
+}
+
+/* ── SETUP (inside game page) ─────────────────────── */
+function SetupPanel({form,setForm,sty,setSty,mode,setMode,onRoll,locked}){
+  return(
+    <div style={{padding:"14px"}}>
+      <div className="label" style={{marginBottom:6}}>FORMAZIONE {locked&&<span style={{color:"var(--muted)",fontSize:9,letterSpacing:2,marginLeft:6}}>BLOCCATA</span>}</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:14}}>
+        {Object.keys(FORMS).map(f=><button key={f} onClick={()=>!locked&&setForm&&setForm(f)} className={"pill"+(form===f?" sel":"")} style={{opacity:locked&&form!==f?0.35:1,cursor:locked?"default":"pointer"}}>{f}</button>)}
+      </div>
+      <div className="label" style={{marginBottom:6}}>STILE DI GIOCO</div>
+      <div style={{display:"flex",gap:5,marginBottom:14}}>
+        {["Difensivo","Equilibrato","Offensivo"].map(s=><button key={s} onClick={()=>setSty(s)} className={"pill"+(sty===s?" sel":"")}>{s}</button>)}
+      </div>
+      <div className="label" style={{marginBottom:6}}>MODALITÀ</div>
+      <div style={{display:"flex",gap:5,marginBottom:16}}>
+        {["Classico","Alla cieca"].map(m=><button key={m} onClick={()=>setMode(m)} className={"pill"+(mode===m?" sel":"")}>{m}</button>)}
+      </div>
+      <div style={{border:"1px dashed var(--border)",borderRadius:8,padding:"12px",marginBottom:12,textAlign:"center",color:"var(--muted)",fontSize:13}}>Sorteggia una spedizione Azzurra storica</div>
+      <button onClick={onRoll} className="btn-red">SORTEGGIA 🎲</button>
+    </div>
+  );
+}
+
+/* ── BOX SCORE ────────────────────────────────────── */
+function BoxScore({slots,assign,mode,playerStats}){
+  const pl=Object.values(assign).filter(Boolean);const n=pl.length;
+  const ov=n===0?"–":Math.round(pl.reduce((s,p)=>s+p.f,0)/n);
+  return(
+    <div style={{padding:"10px 12px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+        <span className="label">BOX SCORE · {n}/11</span>
+        <span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:26,color:"var(--text)",lineHeight:1}}>{ov}</span>
+      </div>
+      <table style={{width:"100%",borderCollapse:"collapse"}}>
+        <tbody>{slots.map((s,i)=>{const p=assign[i];const goals=p&&playerStats?playerStats[p.id]||0:0;return(
+          <tr key={s.id} style={{opacity:p?1:0.28,borderTop:"1px solid var(--divider)"}}>
+            <td style={{padding:"2px 0",paddingRight:3}}><RB pos={s.p} sm/></td>
+            <td style={{fontFamily:"'Inter',sans-serif",fontSize:10,fontWeight:p&&p.l?700:400,color:p&&p.l?GOLDL:"var(--text)",padding:"2px 2px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:74}}>{p?p.n:"–"}</td>
+            {mode==="Classico"&&<td style={{textAlign:"right",fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:11,color:p?GOLDL:"var(--muted)"}}>{p?p.f:""}</td>}
+            {playerStats&&goals>0&&<td style={{textAlign:"right",fontSize:10,color:GR,paddingLeft:2}}>⚽{goals}</td>}
+          </tr>
+        )})}</tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── MATCH CARD ───────────────────────────────────── */
+function MatchCard({ev,expanded}){
+  const{opp,m,round}=ev;const wc=m.winner==="ITA"?GR:m.winner==="DRAW"?"var(--muted)":RED;
+  const icon=m.winner==="ITA"?"✓":m.winner==="DRAW"?"–":"✗";
+  const itK=m.kicks?m.kicks.filter(k=>k.s==="ita"):[];const opK=m.kicks?m.kicks.filter(k=>k.s==="opp"):[];
+  return(
+    <div>
+      <div className="match-row" style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div className="label" style={{marginBottom:3}}>{round}</div>
+          <div style={{fontSize:14,color:"var(--text)",fontWeight:500}}>
+            🇮🇹 <span style={{color:"var(--muted)",fontStyle:"italic",fontWeight:400}}>vs</span> {opp.f} <b>{opp.n}</b> <span style={{color:"var(--muted)",fontSize:11}}>'{String(opp.y).slice(2)}</span>
+          </div>
+          {expanded&&(
+            <div style={{marginTop:8}}>
+              {m.goals.map((g,j)=>(
+                <div key={j} style={{display:"flex",gap:8,alignItems:"center",margin:"3px 0",fontSize:13,fontFamily:"'Bebas Neue',sans-serif",letterSpacing:.5}}>
+                  <span style={{color:"var(--muted)",width:26,textAlign:"right"}}>{g.min}'</span>
+                  <span>{g.ita?"⚽":"◦"}</span>
+                  <span style={{color:g.ita?"var(--text)":RED,fontWeight:g.ita?600:400}}>{g.name}</span>
+                </div>
+              ))}
+              {m.goals.length===0&&<div style={{fontSize:11,color:"var(--muted)",fontStyle:"italic",marginTop:4}}>Nessun gol — 0–0</div>}
+              {m.kicks&&(
+                <div style={{marginTop:8,padding:"8px",background:"var(--hover)",borderRadius:6}}>
+                  <div className="label" style={{marginBottom:5}}>RIGORI</div>
+                  <div style={{display:"flex",gap:10}}>
+                    <div style={{flex:1}}>{itK.map((k,i)=><div key={i} style={{fontSize:11,color:"var(--text)",display:"flex",justifyContent:"flex-end",gap:4,marginBottom:2}}><span>{k.n}</span><span>{k.sc?"⚽":"✗"}</span></div>)}</div>
+                    <div style={{width:1,background:"var(--sep)"}}/>
+                    <div style={{flex:1}}>{opK.map((k,i)=><div key={i} style={{fontSize:11,color:"var(--muted)",display:"flex",gap:4,marginBottom:2}}><span>{k.sc?"⚽":"✗"}</span><span>{k.n}</span></div>)}</div>
+                  </div>
+                </div>
+              )}
+              {ev.injury&&<div style={{marginTop:6,padding:"5px 8px",background:"rgba(206,43,55,.1)",borderRadius:5,border:"1px solid rgba(206,43,55,.3)",fontSize:11,color:RED}}>⚠ Infortunio: <b>{ev.injury.n}</b> out per il prossimo turno</div>}
+            </div>
+          )}
+          {!expanded&&m.goals.length>0&&(
+            <div style={{marginTop:3,display:"flex",flexWrap:"wrap",gap:"0 7px"}}>
+              {m.goals.filter(g=>g.ita).map((g,j)=><span key={"a"+j} style={{fontSize:11,color:"#9fc9ff"}}>⚽{g.min}' {g.name}</span>)}
+              {m.goals.filter(g=>!g.ita).map((g,j)=><span key={"b"+j} style={{fontSize:11,color:"var(--muted)"}}>⚽{g.min}' {g.name}</span>)}
+            </div>
+          )}
+        </div>
+        <div style={{marginLeft:10,textAlign:"right",flexShrink:0}}>
+          <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:28,color:wc,lineHeight:1}}>{m.gf}–{m.ga}</div>
+          <div style={{fontSize:14,color:wc,fontWeight:700}}>{icon}</div>
+          {m.pens&&<div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:GOLD}}>d.c.r.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GroupTable({table}){
+  return(
+    <div style={{background:"var(--hover)",borderRadius:8,overflow:"hidden",margin:"8px 0"}}>
+      <div className="label" style={{padding:"6px 12px",borderBottom:"1px solid var(--sep)"}}>CLASSIFICA GIRONE</div>
+      <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+        <thead><tr style={{color:"var(--muted)",fontFamily:"'Bebas Neue',sans-serif",fontSize:10,letterSpacing:1}}>
+          <th style={{padding:"3px 12px",textAlign:"left",fontWeight:400}}>Squadra</th>
+          {["P","GF","GS","DR"].map(h=><th key={h} style={{padding:"3px 8px",textAlign:"center",fontWeight:400,width:30}}>{h}</th>)}
+        </tr></thead>
+        <tbody>{table.map((t,i)=>(
+          <tr key={i} style={{background:t.me?"rgba(0,61,165,.15)":"transparent",borderTop:"1px solid var(--sep)"}}>
+            <td style={{padding:"4px 12px",color:t.me?GOLDL:"var(--text)",fontWeight:t.me?600:400}}>{i+1}. {t.nm}</td>
+            <td style={{padding:"4px 8px",textAlign:"center",fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:13,color:t.pts>=4?GR:t.pts>0?"var(--text)":RED}}>{t.pts}</td>
+            <td style={{padding:"4px 8px",textAlign:"center",color:"var(--muted)",fontFamily:"'Montserrat',sans-serif",fontWeight:700}}>{t.gf}</td>
+            <td style={{padding:"4px 8px",textAlign:"center",color:"var(--muted)",fontFamily:"'Montserrat',sans-serif",fontWeight:700}}>{t.ga}</td>
+            <td style={{padding:"4px 8px",textAlign:"center",fontFamily:"'Montserrat',sans-serif",fontWeight:700,color:t.gf-t.ga>0?GR:t.gf-t.ga<0?RED:"var(--muted)"}}>{t.gf-t.ga>0?"+":""}{t.gf-t.ga}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── SHARE CARD MODAL ─────────────────────────────── */
+function ShareCardModal({run,assign,slots,onClose}){
+  const endEv=run.events.find(e=>e.t==="end");const pl=Object.values(assign).filter(Boolean);
+  const ps=endEv?.playerStats||{};
+  const text=`🇮🇹 ITALIA MUNDIAL\n${endEv?.champion?"🏆 CAMPIONI DEL MONDO":"❌ Eliminati "+endEv?.where}\n${endEv?.wins}V ${endEv?.draws||0}P ${endEv?.losses||0}S\n\n`+slots.map((s,i)=>assign[i]?`${RI[s.p]} ${assign[i].n} (${assign[i].f})${ps[assign[i].id]?` ⚽${ps[assign[i].id]}`:""}`:"").filter(Boolean).join("\n");
+  return(
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal-box" onClick={e=>e.stopPropagation()}>
+        <Tri/>
+        <div style={{padding:"14px"}}>
+          <div className="label" style={{marginBottom:10}}>LA TUA SQUADRA</div>
+          {/* Card */}
+          <div className="share-card">
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:4,color:GOLD,marginBottom:4}}>★ ★ ★ ★ · ITALIA MUNDIAL</div>
+            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:endEv?.champion?30:24,color:endEv?.champion?GOLDL:RED,marginBottom:6,lineHeight:1}}>{endEv?.champion?"🏆 CAMPIONI DEL MONDO":("ELIMINATI "+endEv?.where?.toUpperCase())}</div>
+            <div style={{display:"flex",gap:16,marginBottom:10}}>
+              {[["V",endEv?.wins],["P",endEv?.draws||0],["S",endEv?.losses||0],["GF",endEv?.gf],["GS",endEv?.ga]].map(([l,v])=>(
+                <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:18,color:GOLDL}}>{v}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:"#888",letterSpacing:1}}>{l}</div></div>
+              ))}
+            </div>
+            <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:8}}>
+              {slots.map((s,i)=>{const p=assign[i];if(!p)return null;const goals=ps[p.id]||0;return(
+                <div key={s.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"3px 0",fontSize:11,borderBottom:"1px solid rgba(255,255,255,.06)"}}>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}><RB pos={s.p} sm/><span style={{color:p.l?GOLDL:"#fff",fontWeight:p.l?700:400}}>{p.n}</span></div>
+                  <div style={{display:"flex",gap:8,alignItems:"center",color:"#888"}}>
+                    {goals>0&&<span style={{color:GR,fontWeight:600}}>⚽{goals}</span>}
+                    <span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,color:GOLDL}}>{p.f}</span>
+                  </div>
+                </div>
+              )})}
+            </div>
+          </div>
+          {/* Copy */}
+          <button onClick={async()=>{if(navigator.share){try{await navigator.share({title:"Italia Mundial — La mia Nazionale 🇮🇹",text});return}catch{}}navigator.clipboard?.writeText(text).then(()=>alert("📋 Copiato!")).catch(()=>alert(text))}} className="btn-red" style={{marginTop:12}}>📤 CONDIVIDI SQUADRA</button>
+          <button onClick={onClose} style={{marginTop:6,width:"100%",padding:"10px",borderRadius:8,background:"transparent",color:"var(--muted)",border:"1px solid var(--border)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2}}>CHIUDI</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── STORIA PAGE ─────────────────────────────────── */
+function StoriaPage({onClose}){
+  const[sel,setSel]=useState(null);
+  const eds=ITA.map(e=>e.y).sort((a,b)=>a-b);
+  const entry=sel?STORIA[sel]:null;
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Tri/>
+      <div style={{maxWidth:560,margin:"0 auto",padding:"0 0 60px"}}>
+        {/* Header */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:"1px solid var(--sep)"}}>
+          <div><div className="label">LE SPEDIZIONI AZZURRE</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"var(--text)"}}>La Storia</div></div>
+          <button onClick={onClose} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:13,letterSpacing:2,color:"var(--muted)",background:"none",border:"1px solid var(--border)",borderRadius:6,padding:"5px 10px"}}>← INDIETRO</button>
+        </div>
+
+        {/* Timeline edizioni */}
+        <div style={{padding:"12px 14px 0"}}>
+          {eds.map(y=>{
+            const s=STORIA[y];const ed=ITA.find(e=>e.y===y);const isChamp=ed?.r?.includes("🏆");
+            const isSel=sel===y;
+            return(
+              <React.Fragment key={y}>
+              {i===4&&<AdSlot id="storia-mid" format="banner"/>}
+              <div onClick={()=>setSel(isSel?null:y)}
+                style={{marginBottom:8,borderRadius:10,overflow:"hidden",border:"1px solid "+(isSel?"#C9A227":isChamp?"rgba(201,162,39,.4)":"var(--border)"),background:isSel?"rgba(201,162,39,.08)":"var(--card)",cursor:"pointer",transition:"all .15s"}}>
+                {/* Header riga */}
+                <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px"}}>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:32,lineHeight:1,color:isChamp?GOLDL:"var(--text)",minWidth:52}}>{y}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:"var(--text)",lineHeight:1.3}}>{s?.titolo||"Italia "+y}</div>
+                    <div style={{fontSize:11,color:isChamp?GOLD:"var(--muted)",marginTop:2}}>{ed?.r}</div>
+                  </div>
+                  <div style={{fontSize:22}}>{s?.emoji||"🇮🇹"}</div>
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,color:"var(--muted)",letterSpacing:1}}>{isSel?"▲":"▼"}</div>
+                </div>
+                {/* Espanso */}
+                {isSel&&s&&(
+                  <div style={{borderTop:"1px solid var(--sep)",padding:"12px 14px",animation:"fadein .2s ease"}}>
+                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:1,color:GOLDL,marginBottom:8,lineHeight:1.4}}>"{s.hero}"</div>
+                    <p style={{fontSize:13,color:"var(--muted)",lineHeight:1.7,marginBottom:10}}>{s.testo}</p>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                      {(s.idoli||[]).map(n=>(
+                        <span key={n} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,letterSpacing:1,padding:"4px 10px",borderRadius:20,background:"rgba(0,61,165,.2)",color:AZ==="var(--bg)"?"#fff":"#9fc9ff",border:"1px solid rgba(0,61,165,.4)"}}>⭐ {n}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {/* SEO footer */}
+        <div style={{padding:"16px 14px",borderTop:"1px solid var(--sep)",marginTop:8}}>
+          <p style={{fontSize:12,color:"var(--muted)",lineHeight:1.6}}>
+            L'Italia ha vinto 4 Campionati del Mondo (1934, 1938, 1982, 2006) ed è la seconda nazione più vincente nella storia del torneo.
+            Dal 2014 la Nazionale non ha disputato una fase finale dei Mondiali — una ferita ancora aperta per milioni di tifosi.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── BRACKET VISIVO ──────────────────────────────── */
+function Bracket({events,revealed,qualEvents}){
+  const matchEvs=events.filter(e=>e.t==="match");
+  const endEv=events.find(e=>e.t==="end");
+  const standEv=events.find(e=>e.t==="standings");
+  const revMatches=matchEvs.slice(0,revealed);
+  const stages=["Gironi","Ottavi","Quarti","Semifinale","Finale"];
+  const byStage={};for(const m of matchEvs)byStage[m.round]=[...(byStage[m.round]||[]),m];
+  const wc=m=>m.winner==="ITA"?GR:m.winner==="DRAW"?"var(--muted)":RED;
+  const ic=m=>m.winner==="ITA"?"✓":m.winner==="DRAW"?"=":"✗";
+  const isRev=m=>revMatches.includes(m);
+  const allGrp=["Gironi","Gironi","Gironi"];
+  return(
+    <div style={{overflowX:"auto",padding:"14px 14px 6px",WebkitOverflowScrolling:"touch"}}>
+      <div style={{display:"flex",gap:0,minWidth:480,alignItems:"flex-start"}}>
+        {/* GIRONI — colonna */}
+        <div style={{width:140,flexShrink:0}}>
+          <div className="label" style={{textAlign:"center",marginBottom:6,fontSize:9}}>GIRONI</div>
+          {(byStage["Gironi"]||[]).map((m,i)=>{
+            const rev=isRev(m);
+            return(
+              <div key={i} style={{marginBottom:6,borderRadius:7,border:"1px solid "+(rev?wc(m):"var(--border)"),background:rev?"var(--card)":"transparent",padding:"6px 8px",opacity:rev?1:0.35,transition:"all .3s"}}>
+                {rev?(
+                  <>
+                    <div style={{fontSize:10,color:"var(--muted)",marginBottom:2}}>{m.opp.f} {m.opp.n} '{String(m.opp.y).slice(2)}</div>
+                    <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:16,color:wc(m),lineHeight:1}}>{m.m.gf}–{m.m.ga} <span style={{fontSize:12}}>{ic(m.m)}</span></div>
+                  </>
+                ):(
+                  <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:"var(--muted)",letterSpacing:1}}>PARTITA {i+1}</div>
+                )}
+              </div>
+            );
+          })}
+          {standEv&&revealed>=3&&(
+            <div style={{marginTop:4,padding:"4px 8px",borderRadius:5,background:standEv.qualified?"rgba(0,146,70,.15)":"rgba(206,43,55,.15)",border:"1px solid "+(standEv.qualified?GR:RED),fontSize:10,textAlign:"center",color:standEv.qualified?GR:RED,fontWeight:700}}>{standEv.qualified?"PASS ✓":"ELIM ✗"}</div>
+          )}
+        </div>
+        {/* Connettore */}
+        <div style={{display:"flex",alignItems:"center",padding:"0 4px",paddingTop:30}}>
+          <div style={{width:16,height:2,background:"var(--sep)"}}/>
+        </div>
+        {/* KO stages */}
+        {["Ottavi","Quarti","Semifinale","Finale"].map((stage,si)=>{
+          const m=(byStage[stage]||[])[0];const rev=m&&isRev(m);const champion=endEv?.champion&&stage==="Finale"&&rev;
+          return(
+            <React.Fragment key={stage}>
+              <div style={{width:130,flexShrink:0,marginTop:si*14}}>
+                <div className="label" style={{textAlign:"center",marginBottom:6,fontSize:9}}>{stage.toUpperCase()}</div>
+                <div style={{borderRadius:7,border:"1px solid "+(rev?wc(m.m):"var(--border)"),background:rev?"var(--card)":"transparent",padding:"8px",opacity:rev?1:0.3,transition:"all .3s",minHeight:52}}>
+                  {rev?(
+                    <>
+                      <div style={{fontSize:10,color:"var(--muted)",marginBottom:2}}>{m.opp.f} {m.opp.n} '{String(m.opp.y).slice(2)}</div>
+                      <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:18,color:wc(m.m),lineHeight:1}}>{m.m.gf}–{m.m.ga}</div>
+                      {m.m.pens&&<div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:GOLD}}>d.c.r.</div>}
+                      <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,color:wc(m.m),letterSpacing:1,marginTop:2}}>{ic(m.m)}</div>
+                      {champion&&<div style={{fontSize:16,textAlign:"center",marginTop:4}}>🏆</div>}
+                    </>
+                  ):(
+                    <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:10,color:"var(--muted)",letterSpacing:1,lineHeight:1.5}}>DA GIOCARE</div>
+                  )}
+                </div>
+              </div>
+              {si<3&&<div style={{display:"flex",alignItems:"center",padding:"0 3px",paddingTop:30+si*14}}><div style={{width:10,height:2,background:"var(--sep)"}}/></div>}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── SIM VIEW ─────────────────────────────────────── */
+function SimView({run,assign,slots,onRestart,theme,setTheme,showQual,qualRun}){
+  const evs=run.events;const matchEvs=evs.filter(e=>e.t==="match");const standEv=evs.find(e=>e.t==="standings");const endEv=evs.find(e=>e.t==="end");
+  const[revealed,setReveal]=useState([]);const[exp,setExp]=useState(-1);const[showShare,setShowShare]=useState(false);const[viewMode,setViewMode]=useState('list');
+  const canNext=revealed.length<matchEvs.length;
+  const iStr=Object.values(assign).filter(Boolean).length?Math.round(Object.values(assign).filter(Boolean).reduce((s,p)=>s+p.f,0)/Object.values(assign).filter(Boolean).length):0;
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Tri/>
+      {/* Header like 7a0 "The Run" */}
+      <div style={{padding:"10px 14px",borderBottom:"1px solid var(--sep)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><div className="label">IL CAMMINO</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"var(--text)"}}>Il Mondiale</div></div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <div style={{display:"flex",border:"1px solid var(--border)",borderRadius:6,overflow:"hidden"}}>
+            <button onClick={()=>setViewMode("list")} style={{padding:"5px 10px",fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:1,background:viewMode==="list"?"var(--text)":"transparent",color:viewMode==="list"?"var(--bg)":"var(--muted)",border:"none"}}>LISTA</button>
+            <button onClick={()=>setViewMode("bracket")} style={{padding:"5px 10px",fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:1,background:viewMode==="bracket"?"var(--text)":"transparent",color:viewMode==="bracket"?"var(--bg)":"var(--muted)",border:"none"}}>BRACKET</button>
+          </div>
+          <ThemeBtn theme={theme} setTheme={setTheme}/>
+        </div>
+      </div>
+      {viewMode==="bracket"&&<div style={{background:"var(--card)",borderBottom:"1px solid var(--sep)"}}><Bracket events={run.events} revealed={revealed.length} qualEvents={qualRun?.events}/></div>}
+      <div style={{maxWidth:520,margin:"0 auto",padding:"0 0 60px"}}>
+        {/* Qual matches shown if qual */}
+        {showQual&&qualRun&&qualRun.events.filter(e=>e.t==="match").map((ev,i)=>(
+          <div key={"q"+i} className="fi" onClick={()=>setExp(exp===i+100?-1:i+100)}>
+            <MatchCard ev={ev} expanded={exp===i+100}/>
+          </div>
+        ))}
+        {/* Main matches */}
+        {matchEvs.slice(0,revealed.length).map((ev,i)=>(
+          <div key={i} className="fi" onClick={()=>setExp(exp===i?-1:i)}>
+            <MatchCard ev={ev} expanded={exp===i}/>
+          </div>
+        ))}
+        {revealed.length===3&&standEv&&<div style={{padding:"0 14px"}}><GroupTable table={standEv.table}/></div>}
+        {revealed.length===3&&standEv&&<div style={{margin:"0 14px 8px",padding:"8px",borderRadius:8,border:"1px solid "+(standEv.qualified?GR:RED),background:standEv.qualified?"rgba(0,146,70,.1)":"rgba(206,43,55,.1)",fontSize:13,textAlign:"center",color:"var(--text)"}}>{standEv.qualified?"✓ Qualificati agli ottavi di finale":"✗ Eliminati nella fase a gironi"}</div>}
+        {/* Reveal button */}
+        {canNext&&<div style={{padding:"12px 14px"}}><button onClick={()=>setReveal(r=>[...r,r.length])} className="btn-red">{revealed.length===0?"RIVELA 1ª PARTITA →":revealed.length<3?"PARTITA "+(revealed.length+1)+" →":((matchEvs[revealed.length]||{}).round||"")+" →"}</button></div>}
+        {/* Final */}
+        {!canNext&&endEv&&<AdSlot id="sim-pregame" format="rectangle"/>}
+        {!canNext&&endEv&&(
+          <div style={{padding:"12px 14px"}}>
+            {endEv.champion?(
+              <div style={{padding:"20px 14px",background:AZ,borderRadius:12,textAlign:"center",border:"1px solid rgba(201,162,39,.5)"}}>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:52,letterSpacing:5,color:GOLDL,lineHeight:.9,textShadow:"0 0 40px rgba(201,162,39,.5)"}}>CAMPIONI</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:4,color:"#fff",marginTop:4}}>DEL MONDO</div>
+                <div style={{fontSize:36,margin:"10px 0"}}>🏆 🇮🇹</div>
+                <div style={{display:"flex",justifyContent:"center",gap:20,marginTop:10}}>
+                  {[["V",endEv.wins],["P",endEv.draws||0],["S",endEv.losses||0],["GF",endEv.gf],["GS",endEv.ga]].map(([l,v])=>(
+                    <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:22,color:GOLDL}}>{v}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:"rgba(255,255,255,.5)",letterSpacing:1}}>{l}</div></div>
+                  ))}
+                </div>
+              </div>
+            ):(
+              <div style={{padding:"16px 14px",background:"rgba(206,43,55,.08)",border:"1px solid rgba(206,43,55,.3)",borderRadius:12,textAlign:"center"}}>
+                <div className="label" style={{marginBottom:4,color:RED}}>ELIMINATI</div>
+                <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:48,color:"var(--text)"}}>{endEv.gf}–{endEv.ga}</div>
+                <div className="label" style={{marginTop:4}}>{endEv.where?.toUpperCase()}</div>
+                <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:10}}>
+                  {[["V",endEv.wins],["P",endEv.draws||0],["S",endEv.losses||0]].map(([l,v])=>(
+                    <div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:20,color:"var(--text)"}}>{v}</div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:9,color:"var(--muted)",letterSpacing:1}}>{l}</div></div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Team card */}
+            <div style={{marginTop:10,background:"var(--card)",border:"1px solid var(--border)",borderRadius:10,overflow:"hidden"}}>
+              <div style={{padding:"8px 12px",borderBottom:"1px solid var(--sep)"}}><div className="label">LA TUA SQUADRA</div></div>
+              <div style={{padding:"4px 12px 8px"}}>
+                {slots.map((s,i)=>{const p=assign[i];if(!p)return null;const goals=endEv?.playerStats?endEv.playerStats[p.id]||0:0;return(
+                  <div key={s.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",fontSize:12,borderBottom:"1px solid var(--divider)"}}>
+                    <div style={{display:"flex",gap:7,alignItems:"center"}}><RB pos={s.p} sm/><span style={{color:p.l?GOLDL:"var(--text)",fontWeight:p.l?700:400}}>{p.n}</span>{p.edition&&<span style={{fontSize:10,color:"var(--muted)"}}>🇮🇹 {p.edition}</span>}</div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>{goals>0&&<span style={{fontSize:11,color:GR,fontWeight:600}}>⚽{goals}</span>}<span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:700,fontSize:12,color:GOLDL}}>{p.f}</span></div>
+                  </div>
+                )})}
+              </div>
+            </div>
+            <AdSlot id="sim-postgame" format="rectangle"/>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button onClick={()=>setShowShare(true)} className="btn-red" style={{flex:1}}>📤 CONDIVIDI</button>
+              <button onClick={onRestart} style={{flex:1,padding:"14px 0",borderRadius:8,border:"1px solid var(--border)",background:"transparent",color:"var(--muted)",fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2}}>← RIGIOCA</button>
+            </div>
+          </div>
+        )}
+      </div>
+      {showShare&&<ShareCardModal run={run} assign={assign} slots={slots} onClose={()=>setShowShare(false)}/>}
+    </div>
+  );
+}
+
+/* ── GAME PAGE (7a0 mobile style) ─────────────────── */
+function GamePage({slots,assign,drawn,rerolls,pending,hlSlots,mode,started,onDraw,onReroll,onPlayerSelect,onSlotTap,onCancelPending,onSimulate,onBack,onReset,form,sty,setForm,setSty,mode:gameMode,setMode,theme,setTheme}){
+  const placed=Object.values(assign).filter(Boolean).map(p=>playerPid(p));
+  const filled=Object.values(assign).filter(Boolean).length;
+  const allFilled=filled===slots.length;
+  const playerList=drawn?[...drawn.s].sort((a,b)=>{const ra=rIdx(a),rb=rIdx(b);return ra!==rb?ra-rb:b.f-a.f}):[];
+  const iStr=filled===0?"–":Math.round(Object.values(assign).filter(Boolean).reduce((s,p)=>s+p.f,0)/filled);
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Tri/>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",borderBottom:"1px solid var(--sep)"}}>
+        <button onClick={onBack} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:2,color:"var(--text)",background:"none",padding:0}}>← ITALIA MUNDIAL</button>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <span className="label">{filled}/11 · {iStr}</span>
+          <ThemeBtn theme={theme} setTheme={setTheme}/>
+        </div>
+      </div>
+      <div className="game-cols">
+        {/* LEFT: draw panel / player list */}
+        <div className="col-left card" style={{padding:0}}>
+          {!drawn&&!allFilled&&<SetupPanel form={form} setForm={started?null:setForm} sty={sty} setSty={setSty} mode={gameMode} setMode={setMode} onRoll={onDraw} locked={started}/> }
+          {drawn&&!allFilled&&(
+            <div>
+              <div style={{padding:"10px 12px",borderBottom:"1px solid var(--sep)"}}>
+                <div className="label">ESTRATTA</div>
+                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,color:"var(--text)",lineHeight:1.1}}>🇮🇹 ITALIA {drawn.y}</div>
+                <div style={{fontSize:12,color:drawn.r.includes("🏆")?GOLDL:"var(--muted)",marginTop:2}}>{drawn.r}</div>
+                {rerolls>0&&<button onClick={onReroll} style={{marginTop:7,fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:1,background:"transparent",color:"var(--muted)",border:"1px solid var(--border)",borderRadius:5,padding:"4px 9px"}}>🔀 ALTRA SQUADRA ({rerolls} left)</button>}
+              </div>
+              {pending&&<div style={{padding:"7px 12px",background:"rgba(201,162,39,.1)",borderBottom:"1px solid rgba(201,162,39,.3)",fontSize:12,color:GOLDL,fontWeight:600}}>📍 {pending.n} — tocca il campo</div>}
+              <div className="label" style={{padding:"7px 12px 3px"}}>SCEGLI UN CALCIATORE</div>
+              <div style={{maxHeight:360,overflowY:"auto"}}>
+                {playerList.map(p=>{
+                  const ok=validSlots(p,slots,assign).length>0&&!placed.includes(playerPid(p));
+                  return(
+                    <div key={p.id} onClick={()=>ok&&onPlayerSelect(p)} className={"pitem"+(pending&&pending.id===p.id?" active":"")+(ok?"":" disabled")}>
+                      <div style={{width:36,height:36,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:ok?(RC[p.pos[0]]||"#555"):"var(--hover)",border:"2px solid rgba(255,255,255,"+(ok?"0.55":"0.1")+")"}}>
+                        <span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:13,color:"#fff"}}>{p.num}</span>
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontFamily:"'Inter',sans-serif",fontSize:13,fontWeight:700,color:p.l&&ok?GOLDL:"var(--text)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{gameMode==="Alla cieca"&&!ok?p.n:p.n}{p.l?" ★":""}</div>
+                        <div style={{display:"flex",gap:3}}>{p.pos.map(r=><RB key={r} pos={r} sm/>)}</div>
+                      </div>
+                      {gameMode==="Classico"&&<span style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:17,color:ok?GOLDL:"var(--muted)",flexShrink:0}}>{p.f}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {allFilled&&(
+            <div style={{padding:"14px"}}>
+              <div className="label" style={{color:GR,marginBottom:4}}>FORMAZIONE COMPLETA</div>
+              <div style={{fontFamily:"'Montserrat',sans-serif",fontWeight:800,fontSize:32,color:"var(--text)",marginBottom:12}}>11/11</div>
+              <button onClick={onSimulate} className="btn-red">SIMULA IL MONDIALE →</button>
+            </div>
+          )}
+          <div style={{padding:"8px 12px",borderTop:"1px solid var(--sep)"}}>
+            <button onClick={onReset} style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:12,letterSpacing:1,background:"transparent",color:"var(--muted)",border:"none",padding:0}}>↩ Ricomincia da capo</button>
+          </div>
+        </div>
+        {/* CENTER: Box score */}
+        <div className="col-right card">
+          <BoxScore slots={slots} assign={assign} mode={gameMode}/>
+        </div>
+        {/* RIGHT: Pitch */}
+        <div id="pitch-el" className="col-pitch">
+          <Pitch slots={slots} assign={assign} hlSlots={hlSlots} onSlotTap={onSlotTap}/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── QUAL VIEW ────────────────────────────────────── */
+function QualView({qualRun,onContinue,onRestart}){
+  const qEnd=qualRun.events.find(e=>e.t==="qualEnd");const matchEvs=qualRun.events.filter(e=>e.t==="match");
+  const[rev,setRev]=useState([]);const[exp,setExp]=useState(-1);const canNext=rev.length<matchEvs.length;
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Tri/>
+      <div style={{maxWidth:520,margin:"0 auto",padding:"14px 14px 48px"}}>
+        <div className="label" style={{marginBottom:2}}>QUALIFICAZIONI UEFA</div>
+        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,letterSpacing:2,color:"var(--text)",marginBottom:12}}>Playoff Europeo</div>
+        {matchEvs.slice(0,rev.length).map((ev,i)=>(
+          <div key={i} className="fi" style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:10,overflow:"hidden",marginBottom:6}} onClick={()=>setExp(exp===i?-1:i)}>
+            <MatchCard ev={ev} expanded={exp===i}/>
+          </div>
+        ))}
+        {canNext&&<button onClick={()=>setRev(r=>[...r,r.length])} className="btn-red">{rev.length===0?"RIVELA PARTITA DI QUALIFICAZIONE →":"PROSSIMA PARTITA →"}</button>}
+        {!canNext&&qEnd&&(
+          <div style={{marginTop:12}}>
+            <div style={{padding:"16px",background:qEnd.qualified?"rgba(0,146,70,.1)":"rgba(206,43,55,.1)",border:"1px solid "+(qEnd.qualified?GR:RED),borderRadius:10,textAlign:"center",marginBottom:12}}>
+              {qEnd.qualified?(
+                <div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,color:GR,letterSpacing:2}}>✓ QUALIFICATI</div><div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>L'Italia va al Mondiale!</div></div>
+              ):(
+                <div><div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,color:RED,letterSpacing:2}}>✗ ELIMINATI</div><div style={{fontSize:13,color:"var(--muted)",marginTop:4}}>L'Italia non si qualifica al Mondiale.</div></div>
+              )}
+            </div>
+            {qEnd.qualified?(
+              <button onClick={onContinue} className="btn-red">VAI AL MONDIALE →</button>
+            ):(
+              <button onClick={onRestart} style={{width:"100%",padding:"14px",borderRadius:8,border:"1px solid var(--border)",background:"transparent",color:"var(--muted)",fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:2}}>← RIPROVA</button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── APP ──────────────────────────────────────────── */
+function App(){
+  const[theme,setTheme]=useState(()=>{const t=localStorage.getItem("nm-theme")||"dark";document.documentElement.setAttribute("data-theme",t);return t});
+  const[page,setPage]=useState("landing");const[showStoria,setShowStoria]=useState(false);
+  const[itaData,setItaData]=useState(ITA); // fallback: dati embedded
+  const[form,setForm]=useState("4-3-3");const[sty,setSty]=useState("Equilibrato");const[mode,setMode]=useState("Classico");
+  const[slots,setSlots]=useState(FORMS["4-3-3"]);
+  const[assign,setAssign]=useState({});const[drawn,setDrawn]=useState(null);const[rerolls,setRerolls]=useState(3);
+  const[pending,setPending]=useState(null);const[hlSlots,setHl]=useState([]);
+  const[recent,setRecent]=useState([]);const[started,setStarted]=useState(false);const[run,setRun]=useState(null);
+  const[qualRun,setQualRun]=useState(null);const[useQual,setUseQual]=useState(false);
+  const placed=Object.values(assign).filter(Boolean).map(p=>playerPid(p));
+  const iStr=Object.values(assign).filter(Boolean).length===0?80:Object.values(assign).filter(Boolean).reduce((s,p)=>s+p.f,0)/Object.values(assign).filter(Boolean).length;
+  // Carica dati da /api/data (proxy Vercel → Supabase, credenziali mai nel browser)
+  // Se l'API non risponde o non è configurata, usa i dati embedded silenziosamente
+  useEffect(()=>{
+    fetch('/api/data')
+      .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(squads=>{
+        if(!Array.isArray(squads)||!squads.length) return;
+        const parsed=squads.map(sq=>({
+          y: sq.copa,
+          r: ({1970:"Finalista",1978:"4° posto",1982:"🏆 Campione",1990:"3° posto",
+               1994:"Finalista",1998:"Quarti",2002:"Ottavi",2006:"🏆 Campione",
+               2014:"Fase gironi"})[sq.copa]||String(sq.copa),
+          s: (sq.players||[]).map(p=>({
+            id:  p.player_id,
+            n:   p.name,
+            num: p.number||0,
+            pos: (()=>{try{return JSON.parse(p.positions)}catch{return[p.positions]}})(),
+            f:   p.force||75,
+            l:   p.legend?1:0
+          }))
+        })).filter(ed=>ed.s.length>0);
+        if(parsed.length) setItaData(parsed);
+      })
+      .catch(()=>{}); // fallback silenzioso ai dati embedded
+  },[]);
+  function themeSet(t){setTheme(t);document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("nm-theme",t)}catch{}}
+  function drawNew(){if(!started)setStarted(true);const emptyPos=new Set(slots.filter((_,i)=>!assign[i]).map(s=>s.p));const emptyCompat=new Set([...emptyPos].flatMap(p=>COMPAT[p]||[p]));const avail=itaData.filter(ed=>ed.s.some(p=>!placed.includes(playerPid(p))&&p.pos.some(r=>emptyCompat.has(r))));if(!avail.length)return;const weighted=avail.flatMap(ed=>{const rc=recent.filter(y=>y===ed.y).length;return Array(Math.max(1,4-rc)).fill(ed)});const ed=pick(weighted);setRecent(r=>[...r.slice(-5),ed.y]);setDrawn(ed)}
+  function onDraw(){if(!drawn)drawNew()}
+  function onReroll(){if(rerolls<=0)return;setRerolls(r=>r-1);setPending(null);setHl([]);drawNew()}
+  function onPlayerSelect(p){const v=validSlots(p,slots,assign);if(!v.length)return;if(v.length===1){setAssign(prev=>({...prev,[v[0]]:{...p,edition:drawn?drawn.y:""}}));setDrawn(null);setPending(null);setHl([]);setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),80)}else{setPending(p);setHl(v);setTimeout(()=>document.getElementById("pitch-el")?.scrollIntoView({behavior:"smooth",block:"start"}),80)}}
+  function onSlotTap(idx){if(!pending||!hlSlots.includes(idx))return;setAssign(prev=>({...prev,[idx]:{...pending,edition:drawn?drawn.y:""}}));setDrawn(null);setPending(null);setHl([]);setTimeout(()=>window.scrollTo({top:0,behavior:"smooth"}),80)}
+  function startQual(){const qr=runQualification(Object.values(assign).filter(Boolean),iStr,sty);setQualRun(qr);setPage("qual")}
+  function simulate(){setRun(runT(Object.values(assign).filter(Boolean),iStr,sty));setUseQual(false);setPage("sim")}
+  function simulateWithQual(){const qr=runQualification(Object.values(assign).filter(Boolean),iStr,sty);setQualRun(qr);if(!qr.qualified){setRun(null);setPage("qual")}else{setUseQual(true);setPage("qual")}}
+  function restart(){setAssign({});setDrawn(null);setPending(null);setHl([]);setRun(null);setQualRun(null);setRecent([]);setRerolls(3);setStarted(false);setSlots(FORMS["4-3-3"]);setForm("4-3-3");setSty("Equilibrato");setMode("Classico");setPage("landing")}
+  function startGame(){setSlots(FORMS[form]);setAssign({});setDrawn(null);setPending(null);setHl([]);setRecent([]);setRerolls(3);setPage("game")}
+  if(page==="landing"&&showStoria)return<ThemeCtx.Provider value={theme}><StoriaPage onClose={()=>setShowStoria(false)}/></ThemeCtx.Provider>;
+  if(page==="landing")return<ThemeCtx.Provider value={theme}><Landing onPlay={startGame} onStoria={()=>setShowStoria(true)} theme={theme} setTheme={themeSet}/></ThemeCtx.Provider>;
+  if(page==="qual"&&qualRun)return<ThemeCtx.Provider value={theme}><QualView qualRun={qualRun} onContinue={()=>{setRun(runT(Object.values(assign).filter(Boolean),iStr,sty));setPage("sim")}} onRestart={restart}/></ThemeCtx.Provider>;
+  if(page==="sim"&&run)return<ThemeCtx.Provider value={theme}><SimView run={run} assign={assign} slots={slots} onRestart={restart} theme={theme} setTheme={themeSet} showQual={useQual} qualRun={qualRun}/></ThemeCtx.Provider>;
+  return(
+    <ThemeCtx.Provider value={theme}>
+      <GamePage slots={slots} assign={assign} drawn={drawn} rerolls={rerolls} pending={pending} hlSlots={hlSlots} mode={mode}
+        onDraw={onDraw} onReroll={onReroll} onPlayerSelect={onPlayerSelect} onSlotTap={onSlotTap}
+        onCancelPending={()=>{setPending(null);setHl([])}}
+        onSimulate={()=>{const filled=Object.values(assign).filter(Boolean).length;if(filled<slots.length)return;simulateWithQual()}}
+        onBack={()=>setPage("landing")} onReset={restart} started={started}
+        form={form} sty={sty} setForm={f=>{setForm(f);setSlots(FORMS[f]);setAssign({});setDrawn(null);setPending(null);setHl([]);setRecent([]);setRerolls(3)}}
+        setSty={setSty} mode={mode} setMode={setMode}
+        theme={theme} setTheme={themeSet}/>
+    </ThemeCtx.Provider>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
