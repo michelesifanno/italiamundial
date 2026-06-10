@@ -1,6 +1,18 @@
 <div id="root"></div>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1316608172290883"
+     crossorigin="anonymous"></script>
+  <script>
+    window.IM_ADSENSE = {
+      enabled: true,
+      publisher: "ca-pub-1316608172290883"
+    };
+  </script>
+</head>
+
+
 <!-- ═══ SEO + Open Graph (per condivisione su social) ═══ -->
 <title>Italia Mundial — Costruisci la tua Nazionale italiana dei sogni</title>
 <meta name="description" content="L'Italia non è ai Mondiali dal 2018. Sorteggia le spedizioni Azzurre storiche, costruisci il tuo undici dei sogni e simula il Mondiale. Gratis, mobile-first.">
@@ -513,11 +525,9 @@ function Landing({onPlay,onStoria,theme,setTheme}){
       {/* Footer */}
       <div style={{borderTop:"1px solid var(--sep)",padding:"16px",textAlign:"center"}}>
         <div style={{fontSize:11,color:"var(--muted)",lineHeight:1.8}}>
-          <span>Dati storici da <a href="https://7a0.com.br" target="_blank" rel="noopener" style={{color:"var(--muted)",textDecoration:"underline"}}>7a0.com.br</a></span>
-          {" · "}
           <a href="https://twitter.com/ItaliaMundial_it" target="_blank" rel="noopener" style={{color:"var(--muted)"}}>𝕏 @ItaliaMundial_it</a>
           {" · "}
-          <span>© 2025 Italia Mundial</span>
+          <span>© 2026 Italia Mundial</span>
         </div>
         <AdSlot id="landing-top" format="banner" style={{margin:"8px auto 0", maxWidth:728}}/>
       </div>
@@ -707,7 +717,7 @@ function StoriaPage({onClose}){
 
         {/* Timeline edizioni */}
         <div style={{padding:"12px 14px 0"}}>
-          {eds.map(y=>{
+          {eds.map((y,i)=>{
             const s=STORIA[y];const ed=ITA.find(e=>e.y===y);const isChamp=ed?.r?.includes("🏆");
             const isSel=sel===y;
             return(
